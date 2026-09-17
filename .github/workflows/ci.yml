@@ -1,0 +1,49 @@
+# CI: the same suite `make test` runs locally, plus an onnx-tagged compile so
+# a change can't break the production build without failing here.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "22"
+      # A go.mod carrying a module nothing imports is a dependency the project
+      # cannot account for, and THIRD-PARTY-NOTICES.md would list it anyway.
+      # Tidy must be a no-op on a clean tree.
+      - name: go mod tidy is a no-op
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+      - run: go vet ./...
+      - run: go build -tags onnx,pg ./...
+      # -race, because the registry is a server: every handler runs on its own
+      # goroutine, and the settings a save writes are read by all of them. The
+      # race that motivated this was invisible to a plain run for as long as the
+      # suite existed.
+      - run: go test -race ./...
+      - run: node --test plugins/pi/test/tacit-extension.test.mjs plugins/opencode/test/tacit-plugin.test.mjs
+
+  # Dependency licensing. Separate from the test job because it needs the
+  # network to fetch the pinned scanner and has nothing to say about whether
+  # the code works — a license failure should not read as a broken build.
+  # THIRD-PARTY-NOTICES.md promises that a scanner is the authority; this is
+  # the scanner.
+  licenses:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - run: make licenses

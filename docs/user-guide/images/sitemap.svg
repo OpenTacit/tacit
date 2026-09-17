@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1460" height="932" viewBox="0 0 1460 932" font-family="system-ui,-apple-system,'Segoe UI',sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8a8781"/>
+    </marker>
+  </defs>
+  <style>
+    .route { font-family: ui-monospace,'SF Mono',Menlo,Consolas,monospace; font-size: 12px; font-weight: 600; fill: #1d5fae; }
+    .lbl   { font-size: 11px; fill: #57534e; }
+    .ghead { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; fill: #44403c; }
+    .gsub  { font-size: 11px; font-style: italic; fill: #8a8781; }
+    .node  { fill: #eaf2fc; stroke: #7fabe0; rx: 8; }
+    .op    { fill: #f1e9fb; stroke: #b294d8; }
+    .oproute { fill: #7a4fbe; }
+    .spine { stroke: #b8b5ae; stroke-width: 1.5; fill: none; }
+    .gbox  { fill: #fbfbfa; stroke: #d6d3cd; rx: 12; }
+  </style>
+
+  <rect x="0" y="0" width="1460" height="932" fill="#ffffff"/>
+  <text x="24" y="36" font-size="19" font-weight="700" fill="#1c1917">OpenTacit registry — UI sitemap</text>
+  <text x="24" y="56" class="gsub">every dashboard page and how they connect</text>
+
+  <!-- top bar -->
+  <rect x="430" y="74" width="600" height="46" fill="#fff7e6" stroke="#d9a441" rx="10"/>
+  <text x="730" y="93" text-anchor="middle" class="ghead">TOP BAR</text>
+  <text x="730" y="110" text-anchor="middle" class="lbl">◆ brand → home · Outcomes · Playbook · Review · You · filter · Demo · avatar menu · theme</text>
+  <path class="spine" marker-end="url(#arrow)" d="M540 120 L 192 146"/>
+  <path class="spine" marker-end="url(#arrow)" d="M660 120 L 548 146"/>
+  <path class="spine" marker-end="url(#arrow)" d="M800 120 L 886 146"/>
+  <path class="spine" marker-end="url(#arrow)" d="M920 120 L 1246 146"/>
+
+  <!-- OUTCOMES -->
+  <rect x="24" y="150" width="336" height="710" class="gbox"/>
+  <text x="40" y="174" class="ghead">OUTCOMES</text>
+  <text x="128" y="174" class="gsub">is it working</text>
+  <rect x="40" y="188" width="304" height="66" class="node"/>
+  <text x="52" y="207" class="route">/  ·  /outcomes</text>
+  <text x="52" y="223" class="lbl">Outcomes dashboard — funnel, standouts, cohort ×</text>
+  <text x="52" y="237" class="lbl">area heatmap, knowledge mix, health · ?w= window</text>
+  <path class="spine" d="M56 254 L56 824 M56 302 L72 302 M56 418 L72 418 M56 476 L72 476 M56 534 L72 534 M56 592 L72 592 M56 650 L72 650 M56 708 L72 708 M56 766 L72 766 M56 824 L72 824 M88 326 L88 360 L100 360"/>
+  <rect x="72" y="278" width="272" height="48" class="node"/>
+  <text x="84" y="297" class="route">/outcomes/cohorts</text>
+  <text x="84" y="313" class="lbl">All cohorts, every segment dimension</text>
+  <rect x="100" y="336" width="244" height="48" class="node"/>
+  <text x="112" y="355" class="route">/outcomes/cohorts/{key}</text>
+  <text x="112" y="371" class="lbl">Cohort detail</text>
+  <rect x="72" y="394" width="272" height="48" class="node"/>
+  <text x="84" y="413" class="route">/outcomes/helped-rate</text>
+  <text x="84" y="429" class="lbl">Helped-rate drill-down</text>
+  <rect x="72" y="452" width="272" height="48" class="node"/>
+  <text x="84" y="471" class="route">/outcomes/signal-trust</text>
+  <text x="84" y="487" class="lbl">Explicit vs inferred evidence</text>
+  <rect x="72" y="510" width="272" height="48" class="node"/>
+  <text x="84" y="529" class="route">/outcomes/events</text>
+  <text x="84" y="545" class="lbl">Activity feed — deliveries &amp; curation</text>
+  <rect x="72" y="568" width="272" height="48" class="node"/>
+  <text x="84" y="587" class="route">/outcomes/dismissals/{reason}</text>
+  <text x="84" y="603" class="lbl">Techniques dismissed for one reason</text>
+  <rect x="72" y="626" width="272" height="48" class="node"/>
+  <text x="84" y="645" class="route">/outcomes/source/{provenance}</text>
+  <text x="84" y="661" class="lbl">Outcomes by technique source</text>
+  <rect x="72" y="684" width="272" height="48" class="node"/>
+  <text x="84" y="703" class="route">/outcomes/tag/{tag}</text>
+  <text x="84" y="719" class="lbl">Outcomes by tag</text>
+  <rect x="72" y="742" width="272" height="48" class="node"/>
+  <text x="84" y="761" class="route">/outcomes/task-type/{type}</text>
+  <text x="84" y="777" class="lbl">Outcomes by task type</text>
+  <rect x="72" y="800" width="272" height="48" class="node"/>
+  <text x="84" y="819" class="route">/outcomes/{id}</text>
+  <text x="84" y="835" class="lbl">One technique's measured record</text>
+
+  <!-- PLAYBOOK -->
+  <rect x="380" y="150" width="336" height="434" class="gbox"/>
+  <text x="396" y="174" class="ghead">PLAYBOOK</text>
+  <text x="482" y="174" class="gsub">what do we know</text>
+  <rect x="396" y="188" width="304" height="66" class="node"/>
+  <text x="408" y="207" class="route">/techniques/map</text>
+  <text x="408" y="223" class="lbl">Playbook map — tag / cohort arrangement,</text>
+  <text x="408" y="237" class="lbl">Areas panel incl. Ungrouped · AI describe</text>
+  <path class="spine" d="M412 254 L412 524 M412 296 L428 296 M412 362 L428 362 M412 420 L428 420 M412 478 L428 478"/>
+  <rect x="428" y="272" width="272" height="56" class="node"/>
+  <text x="440" y="291" class="route">/techniques</text>
+  <text x="440" y="306" class="lbl">All techniques, grouped into areas of practice</text>
+  <text x="440" y="319" class="lbl">?group=tags|cohort · strays in Ungrouped</text>
+  <rect x="428" y="338" width="272" height="48" class="node"/>
+  <text x="440" y="357" class="route">/techniques/retired</text>
+  <text x="440" y="373" class="lbl">Archive of retired techniques</text>
+  <rect x="428" y="396" width="272" height="48" class="node"/>
+  <text x="440" y="415" class="route">/techniques/tags</text>
+  <text x="440" y="431" class="lbl">Tag vocabulary &amp; consolidation</text>
+  <rect x="428" y="454" width="272" height="48" class="node"/>
+  <text x="440" y="473" class="route">/techniques/{id}</text>
+  <text x="440" y="489" class="lbl">Technique detail — recipe, evidence, actions</text>
+  <path class="spine" d="M444 502 L444 536 L456 536"/>
+  <rect x="456" y="512" width="244" height="48" class="node"/>
+  <text x="468" y="531" class="route">/techniques/history/{id}</text>
+  <text x="468" y="547" class="lbl">Version history of reviewed revisions</text>
+
+  <!-- demo menu under playbook -->
+  <rect x="380" y="612" width="336" height="88" fill="#fff7e6" stroke="#d9a441" rx="12"/>
+  <text x="396" y="636" class="ghead">DEMO MENU</text>
+  <text x="497" y="636" class="gsub">only when TACIT_DEMO_DIR is set</text>
+  <text x="396" y="656" class="route">POST /demo/switch</text>
+  <text x="396" y="672" class="lbl">Production | scenario titles · per-browser cookie —</text>
+  <text x="396" y="686" class="lbl">hooks, CLI &amp; MCP always see production · stays on view</text>
+
+  <!-- REVIEW -->
+  <rect x="736" y="150" width="300" height="180" class="gbox"/>
+  <text x="752" y="174" class="ghead">REVIEW</text>
+  <text x="820" y="174" class="gsub">what needs me</text>
+  <rect x="752" y="188" width="268" height="64" class="node"/>
+  <text x="764" y="207" class="route">/review</text>
+  <text x="764" y="223" class="lbl">Drafts, techniques under evaluation (shadow),</text>
+  <text x="764" y="237" class="lbl">decaying techniques, shown-never-adopted</text>
+  <path class="spine" d="M768 252 L768 288 L780 288"/>
+  <rect x="780" y="264" width="240" height="48" class="node"/>
+  <text x="792" y="283" class="route">/drafts/{id}</text>
+  <text x="792" y="299" class="lbl">Draft detail — promote · reject · edit</text>
+
+  <!-- USAGE + AVATAR MENU -->
+  <rect x="736" y="360" width="300" height="106" class="gbox"/>
+  <text x="752" y="384" class="ghead">YOU</text>
+  <text x="790" y="384" class="gsub">how am I using it — your own machines</text>
+  <rect x="736" y="476" width="300" height="452" class="gbox"/>
+  <text x="752" y="500" class="ghead">AVATAR MENU</text>
+  <text x="856" y="500" class="gsub">Settings · Documentation</text>
+  <path class="spine" d="M768 678 L768 712 L780 712"/>
+  <rect x="752" y="398" width="268" height="48" class="node"/>
+  <text x="764" y="417" class="route">/usage</text>
+  <text x="764" y="433" class="lbl">Now · Work · Cost · Outcomes</text>
+  <rect x="752" y="514" width="268" height="48" class="node op"/>
+  <text x="764" y="533" class="route oproute">/settings</text>
+  <text x="764" y="549" class="lbl">General — config, no restart (admin-gated)</text>
+  <rect x="752" y="572" width="268" height="48" class="node op"/>
+  <text x="764" y="591" class="route oproute">/members</text>
+  <text x="764" y="607" class="lbl">Invite links · member keys · coverage</text>
+  <rect x="752" y="630" width="268" height="48" class="node op"/>
+  <text x="764" y="649" class="route oproute">/federation</text>
+  <text x="764" y="665" class="lbl">Published channels &amp; subscriptions</text>
+  <rect x="780" y="688" width="240" height="48" class="node op"/>
+  <text x="792" y="707" class="route oproute">/federation/feed/{id}</text>
+  <text x="792" y="723" class="lbl">One subscribed feed's imports</text>
+  <rect x="752" y="746" width="268" height="48" class="node op"/>
+  <text x="764" y="765" class="route oproute">/learning</text>
+  <text x="764" y="781" class="lbl">Learning readiness (evidence gates)</text>
+  <rect x="752" y="804" width="268" height="48" class="node"/>
+  <text x="764" y="823" class="route">/docs</text>
+  <text x="764" y="839" class="lbl">Documentation — the user guide</text>
+  <rect x="752" y="862" width="268" height="48" class="node"/>
+  <text x="764" y="881" class="route">/docs/{slug}</text>
+  <text x="764" y="897" class="lbl">One page of the guide</text>
+
+  <!-- ACCESS -->
+  <rect x="1056" y="150" width="380" height="298" class="gbox" stroke-dasharray="5 4"/>
+  <text x="1072" y="174" class="ghead">ACCESS</text>
+  <rect x="1072" y="188" width="348" height="52" fill="#f2f2f0" stroke="#a8a29e" rx="8"/>
+  <text x="1084" y="207" class="route">/auth/login → /auth/callback</text>
+  <text x="1084" y="223" class="lbl">OIDC sign-in (gates HTML views; /v1 stays key-authed)</text>
+  <rect x="1072" y="250" width="348" height="46" fill="#f2f2f0" stroke="#a8a29e" rx="8"/>
+  <text x="1084" y="269" class="route">/auth/logout</text>
+  <text x="1084" y="285" class="lbl">Sign out</text>
+  <rect x="1072" y="306" width="348" height="46" fill="#f2f2f0" stroke="#a8a29e" rx="8"/>
+  <text x="1084" y="325" class="route">/setup</text>
+  <text x="1084" y="341" class="lbl">First-run claim gate (parks everything until configured)</text>
+  <rect x="1072" y="362" width="348" height="46" fill="#f2f2f0" stroke="#a8a29e" rx="8"/>
+  <text x="1084" y="381" class="route">/join/{token}</text>
+  <text x="1084" y="397" class="lbl">Member onboarding script (curl | sh)</text>
+
+  <text x="1056" y="470" class="lbl">Blue boxes are member-facing pages; <tspan fill="#7a4fbe" font-weight="700">violet boxes are operator-only</tspan></text>
+  <text x="1056" y="486" class="lbl">destinations (admin / config). Amber boxes are top-bar controls;</text>
+  <text x="1056" y="502" class="lbl">the dashed group is the access flow. Indented boxes are drill-downs</text>
+  <text x="1056" y="518" class="lbl">of the page above them.</text>
+</svg>

@@ -1,0 +1,29 @@
+# tacit registry as a systemd user service.
+#
+# Install:
+#   mkdir -p ~/.config/systemd/user
+#   cp deploy/tacit-registry.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now tacit-registry
+#   loginctl enable-linger $USER   # keep it running when logged out (may need admin)
+#
+# The working directory is where techniques/, docs/, and the data/ store resolve;
+# point Environment=TACIT_DB_URL=... at Postgres to use the shared backend.
+# The hook agent needs no unit: the plugin relay auto-starts it on demand.
+
+[Unit]
+Description=tacit registry service (techniques, evidence, feedback)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Repos/tacit
+# Run whatever `make install` (go install) produces: resolve go's install dir at
+# start — GOBIN if set, else GOPATH/bin — so the service never runs a stale path
+# if GOBIN/GOPATH change. `go` is on the user service PATH via /snap/bin.
+ExecStart=/bin/sh -c 'B=$(go env GOBIN); [ -n "$B" ] || B=$(go env GOPATH)/bin; exec "$B/tacit" serve'
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,49 @@
+# Dockerfile rot guard (docs/distribution/docker-plan.md): whenever the image
+# inputs change, build the amd64 image for real — binary, onnx-fetch, layer
+# assembly — without pushing. Release pushes happen in release.yml.
+name: docker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - cmd/tacit/onnxfetch.go
+      - cmd/tacit/doctor.go
+      - internal/onnxassets/**
+      - .github/workflows/docker.yml
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - cmd/tacit/onnxfetch.go
+      - cmd/tacit/doctor.go
+      - internal/onnxassets/**
+      - .github/workflows/docker.yml
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - name: Build the linux binary the Dockerfile expects
+        env:
+          CGO_ENABLED: "1"
+        run: |
+          mkdir dist
+          go build -tags onnx,pg -trimpath -o dist/tacit-linux-amd64 ./cmd/tacit
+      - name: Build the image (no push)
+        run: docker buildx build --platform linux/amd64 -t tacit-ci .
+      - name: Boot it and probe health
+        run: |
+          docker run -d --name tacit-ci tacit-ci
+          for i in $(seq 1 15); do
+            sleep 1
+            docker exec tacit-ci /usr/local/bin/tacit doctor --probe && exit 0
+          done
+          docker logs tacit-ci
+          exit 1

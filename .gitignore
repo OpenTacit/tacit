@@ -1,0 +1,39 @@
+/tacit
+/tacit-ingress
+/ingress-data/
+/dist/
+/data/
+/data.bak-*/
+/onnx/
+*.log
+.codex/
+docs/team-digest.md
+.tacit/
+
+# secrets / TLS material — never commit (e.g. tailscale-issued certs)
+*.key
+*.crt
+
+# stray @openai/codex node install at the repo root
+# (anchored so tracked plugins/*/package.json stay checked in)
+/node_modules/
+/package.json
+/package-lock.json
+
+# A literal TACIT_REGISTRY_ENV="~/..." creates a directory named ~ in the
+# working tree — the guideshots recipe sets exactly that to pin the wizard
+# screenshot to the tilde form. It holds a scratch API key.
+/~/
+
+# Editor configuration. Whatever a contributor's editor keeps here is theirs —
+# launch targets pointing at one person's data directory, tasks naming one
+# person's paths. Anchored, because the rule is about the checkout's own
+# directory and not about any .vscode somebody's assets might contain.
+/.vscode/
+
+# Claude Code's per-checkout settings. The maintainer's own guardrails live here
+# — a hook refusing `git push`, say — and they are workflow rather than project
+# policy: a contributor pushing to their own fork IS its maintainer. A global
+# ignore covers this on the maintainer's machine; the rule is repeated here so
+# it covers everyone else's.
+/.claude/settings.local.json

@@ -1,0 +1,169 @@
+# Release: tag-triggered binaries for the `curl | sh` installer
+# (docs/distribution/install-plan.md).
+#
+# Every artifact is built WITH -tags onnx,pg. The onnx tag is free when no
+# model is configured, and shipping it everywhere retires the
+# silently-degraded-retrieval trap the Makefile warns about. The pg tag adds
+# the Postgres driver, which a source build deliberately leaves out
+# (cmd/tacit/storebackend.go) — a released binary is the one an operator
+# cannot rebuild, so it carries every backend. CGO makes
+# cross-compilation painful, so each platform builds on a native runner;
+# darwin-amd64 is the exception (Apple's clang cross-targets x86_64 cleanly).
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { goos: linux,  goarch: amd64, runner: ubuntu-latest }
+          - { goos: linux,  goarch: arm64, runner: ubuntu-24.04-arm }
+          - { goos: darwin, goarch: arm64, runner: macos-latest }
+          - { goos: darwin, goarch: amd64, runner: macos-latest }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - name: Build
+        env:
+          CGO_ENABLED: "1"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go build -tags onnx,pg -trimpath \
+            -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
+            -o tacit ./cmd/tacit
+      - name: Smoke-test (native builds only)
+        if: matrix.goarch == 'arm64' || matrix.goos == 'linux'
+        run: test "$(./tacit version)" = "${GITHUB_REF_NAME}"
+      - name: Package
+        run: tar -czf "tacit_${GITHUB_REF_NAME}_${{ matrix.goos }}_${{ matrix.goarch }}.tar.gz" tacit README.md
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: tacit-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: tacit_*.tar.gz
+          if-no-files-found: error
+
+  # The container image (docs/distribution/docker-plan.md): assembled from the
+  # linux binaries built above — buildx needs no QEMU because nothing compiles.
+  image:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write           # the OIDC token the attestation is signed against
+      attestations: write       # writing the attestation itself
+      artifact-metadata: write  # the storage record push-to-registry creates
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          merge-multiple: true
+      - name: Unpack binaries for the Dockerfile
+        run: |
+          mkdir dist
+          for arch in amd64 arm64; do
+            tar -xzf "tacit_${GITHUB_REF_NAME}_linux_${arch}.tar.gz" tacit
+            mv tacit "dist/tacit-linux-${arch}"
+          done
+      - name: Log in to GHCR
+        run: echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      # A prerelease tag (v0.1.0-rc1 — semver says the hyphen makes it one)
+      # publishes under its own tag and must NOT move :latest, or a rehearsal
+      # becomes what every `docker pull` gets.
+      - name: Build and push
+        id: push
+        run: |
+          latest="--tag ghcr.io/${GITHUB_REPOSITORY}:latest"
+          case "${GITHUB_REF_NAME}" in *-*) latest="" ;; esac
+          docker buildx create --use
+          docker buildx build --push \
+            --platform linux/amd64,linux/arm64 \
+            --tag "ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_REF_NAME}" \
+            $latest \
+            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.version=${GITHUB_REF_NAME}" \
+            --label "org.opencontainers.image.title=OpenTacit registry" \
+            --label "org.opencontainers.image.description=Your organization's measured playbook for working with AI" \
+            --metadata-file metadata.json \
+            .
+          digest=$(jq -r '."containerimage.digest"' metadata.json)
+          [ -n "$digest" ] && [ "$digest" != "null" ] || { echo "buildx reported no image digest" >&2; exit 1; }
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+      # The image gets the same treatment as the tarballs, and it matters more
+      # here: a `docker pull` has no checksum step to fall back on. The
+      # attestation travels with the image in the registry rather than living
+      # only on GitHub, which is what push-to-registry buys.
+      #
+      #   gh attestation verify oci://ghcr.io/${{ github.repository }}:<tag> --repo ${{ github.repository }}
+      #
+      # The name carries no tag on purpose: the digest identifies what is being
+      # attested, and a tag can be moved afterwards.
+      - name: Attest the image
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # gh release create
+      id-token: write      # the OIDC token the attestation is signed against
+      attestations: write  # writing the attestation itself
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          merge-multiple: true
+      - name: Checksums
+        run: sha256sum tacit_*.tar.gz > SHA256SUMS
+      # SHA256SUMS on its own proves a download arrived intact and nothing about
+      # who produced it: it sits in the same release as the artifacts it vouches
+      # for, so anyone who can write to that release can replace both. The
+      # attestation is the missing half — a statement GitHub signs that these
+      # digests came from this workflow, at this commit, in this repository.
+      # Verify with:
+      #
+      #   gh attestation verify tacit_<ver>_<os>_<arch>.tar.gz --repo ${{ github.repository }}
+      #
+      # SHA256SUMS is attested too, so the file the installer reads is covered
+      # rather than just the file it checks.
+      #
+      # This step FAILS on a private repository unless the account is on GitHub
+      # Enterprise Cloud — attestations are public-repository-only on Free, Pro
+      # and Team. That is the right failure: the first tag comes after the
+      # repository is public, and a release that quietly skipped attestation
+      # would defeat the point of having it.
+      - name: Attest the release artifacts
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: 'tacit_*.tar.gz, SHA256SUMS'
+      # install.sh resolves /releases/latest, which the GitHub API defines as
+      # the newest NON-prerelease. Marking a hyphenated tag as a prerelease is
+      # therefore what makes a rehearsal safe: the artifacts are real, the
+      # whole pipeline runs, and `curl | sh` keeps serving the last real
+      # release. Test the rehearsal explicitly with
+      # `TACIT_VERSION=<tag> sh install.sh`.
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "${GITHUB_REF_NAME}" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "${GITHUB_REF_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "tacit ${GITHUB_REF_NAME}" \
+            --generate-notes $prerelease \
+            tacit_*.tar.gz SHA256SUMS

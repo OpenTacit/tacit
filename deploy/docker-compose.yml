@@ -1,0 +1,31 @@
+# Reference container deployment (docs/distribution/docker-plan.md).
+#
+#   docker compose up -d
+#   docker compose logs        # the first-run claim code appears here
+#
+# The tacit-data volume is the whole registry — settings (registry.env),
+# the SQLite store (tacit.db, the image default), and techniques. Back up the
+# volume, back up everything.
+services:
+  tacit:
+    image: ghcr.io/opentacit/tacit:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - tacit-data:/data
+    # environment:
+    #   # Behind a reverse proxy, tell the registry the address members use —
+    #   # links, invites, and sign-in redirects carry it. Serving from a
+    #   # sub-path additionally needs TACIT_BASE_PATH (see the user guide:
+    #   # 40-administration/14-configure-the-registry.md#serve-under-a-sub-path).
+    #   TACIT_EXTERNAL_URL: https://tacit.example.com
+    #   # TACIT_BASE_PATH: /apps/tacit
+    #   # Storage: the image defaults to SQLite at /data/tacit.db. For a
+    #   # shared / multi-instance deployment point it at Postgres instead
+    #   # (the backend is chosen by this env var, not the Settings page):
+    #   # TACIT_DB_URL: postgres://user:pass@host/tacit
+    #   # TACIT_DB_URL: ""            # force the embedded file store
+
+volumes:
+  tacit-data:

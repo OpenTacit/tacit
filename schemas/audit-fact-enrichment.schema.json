@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/audit-fact-enrichment.schema.json",
+  "title": "AuditFactEnrichment",
+  "description": "Model-inferred additions to an audit fact posted after turn delivery. This is the POST /v1/audit-facts/enrich body (tacit/pkg/contracts.AuditFactEnrichment). tools_absent identifies tools that may have helped and must be treated as inferred.",
+  "type": "object",
+  "required": ["audit_id"],
+  "properties": {
+    "audit_id": {"type": "string", "minLength": 1},
+    "tools_absent": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

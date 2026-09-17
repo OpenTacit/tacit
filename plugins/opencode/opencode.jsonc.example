@@ -1,0 +1,18 @@
+// Tacit wiring for opencode: merge into ~/.config/opencode/opencode.jsonc
+// (or a project's opencode.jsonc).
+//
+// The MCP server is the pull-based ask path (tacit_search, tacit_insights),
+// the same wiring Claude Code gets from .mcp.json. The hook capture layer is
+// the plugin file: symlink or copy plugin/tacit.ts into
+// ~/.config/opencode/plugin/ (or list its absolute path under "plugin").
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "tacit": {
+      "type": "local",
+      "command": ["{{TACIT_BIN}}", "mcp"]
+    }
+  }
+  // Alternative to the plugin/ directory convention:
+  // "plugin": ["/path/to/tacit/plugins/opencode/plugin/tacit.ts"]
+}

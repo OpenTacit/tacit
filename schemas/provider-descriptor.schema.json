@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/provider-descriptor.schema.json",
+  "title": "Provider descriptor",
+  "description": "The federation discovery document served at /.well-known/tacit.json (tacit/pkg/feed.Descriptor).",
+  "type": "object",
+  "required": ["tacit_federation", "provider", "public_key", "channels"],
+  "properties": {
+    "tacit_federation": {"const": "v1"},
+    "provider": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "public_key": {"type": "string", "pattern": "^ed25519:[A-Za-z0-9+/]+=*$"},
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "feed_url"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+          "title": {"type": "string"},
+          "feed_url": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

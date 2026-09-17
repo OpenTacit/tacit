@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/technique.schema.json",
+  "title": "Technique",
+  "description": "One technique managed by the registry. Normative for tacit/pkg/contracts.Technique; prose companion: schemas/technique.md.",
+  "type": "object",
+  "required": ["id", "name", "description", "scope", "status", "provenance", "version", "recipe", "decay_signal", "created_at", "updated_at"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9/_@-]*$", "minLength": 2},
+    "name": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "scope": {"enum": ["general", "org"]},
+    "status": {"enum": ["draft", "shadow", "mined", "stable", "decayed", "retired", "rejected"]},
+    "provenance": {"enum": ["curated", "mined", "contributed", "federated", "suggested", "observed"]},
+    "version": {"type": "integer", "minimum": 1},
+    "recipe": {"type": "string"},
+    "before_after": {"type": "string"},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "task_types": {"type": "array", "items": {"type": "string"}},
+    "triggers": {"type": "array", "items": {"anyOf": [{"type": "string"}, {"type": "object"}]}},
+    "applies_when": {"type": "string"},
+    "not_when": {"type": "string"},
+    "support_matrix": {"type": "array", "items": {"type": "object"}},
+    "channels": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"}},
+    "origin": {
+      "type": "object",
+      "required": ["provider_id", "provider_key", "entry_id", "channel_id", "content_hash", "imported_at"],
+      "properties": {
+        "provider_id": {"type": "string"},
+        "provider_key": {"type": "string", "pattern": "^ed25519:"},
+        "entry_id": {"type": "string"},
+        "channel_id": {"type": "string"},
+        "content_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "imported_at": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "shipped": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$"},
+    "decay_signal": {"type": "integer", "minimum": 0},
+    "decay_checked": {"type": "string"},
+    "embedding": {"type": "array", "items": {"type": "number"}},
+    "embedding_model": {"type": "string"},
+    "embedding_dim": {"type": "integer", "minimum": 1},
+    "source": {"type": "string"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "supersedes": {"type": "string", "description": "For revision drafts: id of the base technique this draft proposes to change."},
+    "base_version": {"type": "integer", "minimum": 1, "description": "For revision drafts: base technique version this revision was drafted against; promotion requires a current pin."},
+    "revision_note": {"type": "string", "description": "For revision drafts: the proposer's reason, shown to the reviewer."}
+  },
+  "additionalProperties": false
+}

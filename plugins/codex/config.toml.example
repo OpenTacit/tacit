@@ -1,0 +1,61 @@
+# Manual / self-serve wiring for Codex CLI: the equivalent of installing the tacit-codex
+# plugin, for members who wire the hook agent directly. Merge these blocks into
+# ~/.codex/config.toml (all surfaces) or a project .codex/config.toml. Codex is
+# command-only, so every hook runs the relay, which auto-starts the local hook agent on
+# the first hook and lets it idle-exit when quiet (docs/in-harness-hooks.md,
+# "On-demand lifecycle").
+#
+# Use the ABSOLUTE path to the tacit binary: Codex may start from any subdirectory and
+# hooks run without your login shell's PATH, so a bare command is not reliable here. The
+# turn-boundary hooks carry a larger timeout so the very first hook of a session can
+# absorb the one-time agent spawn.
+#
+# On first run Codex shows a "Hooks need review" prompt: choose "Trust all and continue".
+# Trust is recorded against the relay command's content hash, so you're not re-prompted
+# unless it changes. `/hooks` inspects/trusts/disables at any time. No SessionEnd hook: # Codex has no such event; the idle-exit reaps the session.
+#
+# Beyond hooks, full parity with the Claude Code plugin needs two more pieces:
+#   1. The MCP search tool ([mcp_servers.tacit] below, or:
+#        codex mcp add tacit -- {{TACIT_BIN}} mcp
+#      ). Exposes `tacit_search` to the model.
+#   2. The skills: copy plugins/codex/skills/* into ~/.codex/skills/. Codex surfaces
+#      them by name+description and members invoke them with a $ mention (type $ to
+#      pick): $tacit-help, $tacit-search, $tacit-status, $tacit-insights, $tacit-org, $tacit-setup, $tacit-suggest, $tacit-test,
+#      $tacit-drafts, $tacit-review, $tacit-audit, plus $tacit-contribute.
+#      (Codex has no custom slash commands; slash is built-ins only.)
+
+[mcp_servers.tacit]
+command = "{{TACIT_BIN}}"
+args = ["mcp"]
+
+[[hooks.SessionStart]]
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = "{{TACIT_BIN}} hook-relay codex"
+timeout = 15
+
+[[hooks.UserPromptSubmit]]
+[[hooks.UserPromptSubmit.hooks]]
+type = "command"
+command = "{{TACIT_BIN}} hook-relay codex"
+timeout = 15
+
+[[hooks.PreToolUse]]
+matcher = ""
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "{{TACIT_BIN}} hook-relay codex"
+timeout = 10
+
+[[hooks.PostToolUse]]
+matcher = ""
+[[hooks.PostToolUse.hooks]]
+type = "command"
+command = "{{TACIT_BIN}} hook-relay codex"
+timeout = 10
+
+[[hooks.Stop]]
+[[hooks.Stop.hooks]]
+type = "command"
+command = "{{TACIT_BIN}} hook-relay codex"
+timeout = 15

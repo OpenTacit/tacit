@@ -1,0 +1,29 @@
+{
+  "_comment": "Manual / self-serve wiring for Gemini CLI — the equivalent of installing the tacit extension, for members who wire the hook agent directly. Merge the `hooks` and `mcpServers` objects into ~/.gemini/settings.json (all surfaces) or a project .gemini/settings.json. Gemini is command-only like Codex: every hook runs the relay, which auto-starts the local hook agent on the first hook and lets it idle-exit when quiet. Use the ABSOLUTE path to the tacit binary — hooks run without your login shell's PATH. Timeouts are milliseconds. On first use Gemini asks to trust the hooks (recorded in ~/.gemini/trusted_hooks.json against the command's content); project-level hooks additionally require the folder to be trusted. The /tacit:* commands come from the extension's commands/ tree — copy plugins/gemini/commands/tacit/* into ~/.gemini/commands/tacit/ if you are wiring manually. This file is a template: {{TACIT_BIN}} is rewritten to your binary path by `tacit connect`.",
+  "mcpServers": {
+    "tacit": {
+      "command": "{{TACIT_BIN}}",
+      "args": ["mcp"]
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "name": "tacit-relay", "command": "{{TACIT_BIN}} hook-relay gemini", "timeout": 15000 }] }
+    ],
+    "BeforeAgent": [
+      { "hooks": [{ "type": "command", "name": "tacit-relay", "command": "{{TACIT_BIN}} hook-relay gemini", "timeout": 15000 }] }
+    ],
+    "BeforeTool": [
+      { "hooks": [{ "type": "command", "name": "tacit-relay", "command": "{{TACIT_BIN}} hook-relay gemini", "timeout": 10000 }] }
+    ],
+    "AfterTool": [
+      { "hooks": [{ "type": "command", "name": "tacit-relay", "command": "{{TACIT_BIN}} hook-relay gemini", "timeout": 10000 }] }
+    ],
+    "AfterAgent": [
+      { "hooks": [{ "type": "command", "name": "tacit-relay", "command": "{{TACIT_BIN}} hook-relay gemini", "timeout": 15000 }] }
+    ],
+    "SessionEnd": [
+      { "hooks": [{ "type": "command", "name": "tacit-relay", "command": "{{TACIT_BIN}} hook-relay gemini", "timeout": 10000 }] }
+    ]
+  }
+}

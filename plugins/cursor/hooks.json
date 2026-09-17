@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      { "command": "{{TACIT_BIN}} hook-relay cursor", "timeout": 15 }
+    ],
+    "beforeSubmitPrompt": [
+      { "command": "{{TACIT_BIN}} hook-relay cursor", "timeout": 15 }
+    ],
+    "preToolUse": [
+      { "command": "{{TACIT_BIN}} hook-relay cursor", "timeout": 10 }
+    ],
+    "postToolUse": [
+      { "command": "{{TACIT_BIN}} hook-relay cursor", "timeout": 10 }
+    ],
+    "afterAgentResponse": [
+      { "command": "{{TACIT_BIN}} hook-relay cursor", "timeout": 10 }
+    ],
+    "stop": [
+      { "command": "{{TACIT_BIN}} hook-relay cursor", "timeout": 15 }
+    ],
+    "sessionEnd": [
+      { "command": "{{TACIT_BIN}} hook-relay cursor", "timeout": 10 }
+    ]
+  }
+}

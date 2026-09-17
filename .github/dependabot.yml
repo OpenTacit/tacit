@@ -1,0 +1,48 @@
+# Keeps the pinned things moving. Three of this project's supply-chain
+# decisions only hold if something bumps them: the five actions pinned to
+# commit SHAs, the two base images pinned to digests, and a direct Go set kept
+# deliberately small. A pin nobody updates is a pin that rots into a known CVE
+# with a tidy-looking hash beside it.
+#
+# Grouped by ecosystem and monthly, because a single maintainer reviewing eight
+# separate pull requests a week stops reviewing them.
+#
+# plugins/pi/package.json is deliberately absent. It declares peerDependencies
+# only, is never installed, has no lockfile and ships no node_modules — so
+# there is nothing to update and a weekly "no changes" run would be noise.
+version: 2
+
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      go:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps"
+
+  # The tag stays in a trailing comment beside each SHA; Dependabot rewrites
+  # both, which is the whole reason the comment is there.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"
+
+  # debian:12-slim and gcr.io/distroless/cc-debian12:nonroot, both by digest.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      images:
+        patterns: ["*"]
+    commit-message:
+      prefix: "image"

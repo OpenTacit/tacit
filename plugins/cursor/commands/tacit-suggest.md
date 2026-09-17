@@ -1,0 +1,65 @@
+# tacit-suggest
+
+Research and draft techniques matched to this org's observed Tacit usage: registry-side when it has an Anthropic key, otherwise via the harness's own web search. Use when the member invokes /tacit-suggest or asks Tacit to suggest techniques.
+
+## First: resolve the registry address
+
+Run this once. Each command block starts a fresh shell, so substitute the
+**resolved values** into every command and put the resolved URL (`$DASH`) in
+member-facing links:
+
+```bash
+eval "$(tacit env)"   # sets REG (API base), KEY (X-Tacit-Key), DASH (dashboard URL)
+```
+
+Research generally applicable techniques that fit the organization's agent
+usage and file them as Tacit drafts. Drafts remain unavailable in retrieval
+until a reviewer promotes them.
+
+## 1. Prefer the registry's own researcher
+
+```bash
+curl -s -X POST --max-time 360 $REG/v1/admin/suggest \
+  -H "X-Tacit-Key: $KEY" -H "Content-Type: application/json" \
+  -d '{"count": 10}'
+```
+
+- `{"created": [...]}` → skip to the report (step 3).
+- HTTP 503 (registry has no `TACIT_LLM_API_KEY`) → research from the harness
+  (step 2). Any other error: relay it and stop.
+
+## 2. Harness-side research fallback
+
+1. Fetch the aggregate usage profile (task types, harnesses, surfaces,
+   adopted tags, dismiss reasons, existing technique names):
+
+   ```bash
+   curl -s $REG/v1/admin/usage-profile -H "X-Tacit-Key: $KEY"
+   ```
+
+2. From the profile's dominant usage, run 3–6 **targeted web
+   searches** for current guidance. Prefer primary sources
+   (vendor docs, tool authors' engineering posts, well-regarded practitioner
+   writeups), ideally under a year old. Use concrete usage queries such as
+   "prompt caching agentic coding workflows".
+
+3. Distill up to 10 techniques. Each must be portable across organizations, use
+   broadly available tools, provide an actionable recipe a colleague can reuse verbatim,
+   and distinct from the profile's `existing_techniques` and from each other.
+
+4. Submit each one to the drafts lane:
+
+   ```bash
+   curl -s -X POST $REG/v1/contribute \
+     -H "X-Tacit-Key: $KEY" -H "Content-Type: application/json" \
+     -d '{"name": "…", "description": "…", "recipe": "…", "applies_when": "…",
+          "not_when": "…", "tags": ["…"], "scope": "general",
+          "provenance": "suggested", "source_url": "<strongest source>"}'
+   ```
+
+## 3. Report
+
+List each created draft: name, one-line description, source, and point the
+member at the review queue: `$DASH/drafts` (promote makes a
+technique retrievable to colleagues; reject drops it). Never promote on the
+member's behalf.

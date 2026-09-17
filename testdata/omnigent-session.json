@@ -1,0 +1,88 @@
+{
+  "id": "conv_7f3a9b2c",
+  "agent_id": "ag_data_helper",
+  "agent_name": "data-helper",
+  "status": "idle",
+  "created_at": 1718000000,
+  "title": "Summarize the sales pipeline",
+  "labels": {"team": "revops", "role": "analyst", "function": "sales", "surface": "cli"},
+  "llm_model": "anthropic/claude-sonnet-4-6",
+  "harness": "claude-code",
+  "model_override": null,
+  "total_cost_usd": 0.12,
+  "last_total_tokens": 4200,
+  "usage_by_model": {"claude-sonnet-4-6": {"total_tokens": 4200, "total_cost_usd": 0.12}},
+  "items": [
+    {
+      "id": "msg_meta_1",
+      "type": "message",
+      "status": "completed",
+      "response_id": "resp_0",
+      "created_at": 1718000000,
+      "data": {
+        "role": "user",
+        "is_meta": true,
+        "content": [{"type": "input_text", "text": "[injected skill instructions — hidden]"}]
+      }
+    },
+    {
+      "id": "msg_1",
+      "type": "message",
+      "status": "completed",
+      "response_id": "resp_1",
+      "created_at": 1718000001,
+      "created_by": "alice@example.com",
+      "data": {
+        "role": "user",
+        "content": [
+          {"type": "input_text", "text": "Here are pipeline rows I pasted from the warehouse dashboard:\n2024-Q1, 100\n2024-Q2, 120\nSummarize the trend for me."},
+          {"type": "input_image", "image_url": "att://screenshot-of-dashboard.png"}
+        ]
+      }
+    },
+    {
+      "id": "msg_2",
+      "type": "message",
+      "status": "completed",
+      "response_id": "resp_1",
+      "created_at": 1718000002,
+      "data": {
+        "role": "assistant",
+        "model": "claude-sonnet-4-6",
+        "content": [{"type": "output_text", "text": "The pipeline grew 20% from Q1 to Q2, from 100 to 120."}]
+      }
+    },
+    {
+      "id": "fc_1",
+      "type": "function_call",
+      "status": "completed",
+      "response_id": "resp_1",
+      "created_at": 1718000003,
+      "data": {
+        "model": "claude-sonnet-4-6",
+        "name": "web.search",
+        "arguments": "{\"query\": \"b2b sales pipeline growth benchmarks\"}",
+        "call_id": "call_aaa"
+      }
+    },
+    {
+      "id": "fco_1",
+      "type": "function_call_output",
+      "status": "completed",
+      "response_id": "resp_1",
+      "created_at": 1718000004,
+      "data": {
+        "call_id": "call_aaa",
+        "output": "Median quarter-over-quarter pipeline growth for B2B is ~12%."
+      }
+    },
+    {
+      "id": "rsn_1",
+      "type": "reasoning",
+      "status": "completed",
+      "response_id": "resp_1",
+      "created_at": 1718000005,
+      "data": {"model": "claude-sonnet-4-6", "summary": [{"type": "summary_text", "text": "compare to benchmark"}]}
+    }
+  ]
+}

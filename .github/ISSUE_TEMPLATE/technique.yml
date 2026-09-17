@@ -1,0 +1,52 @@
+name: Propose a starter technique
+description: A move that belongs in the playbook every new registry begins with
+labels: [technique]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The starter techniques in `techniques/` are what a brand-new registry
+        has before it has measured anything. They have to be general enough to
+        help a stranger and specific enough to act on.
+
+        To contribute a technique to **your own** registry, use
+        `/tacit:contribute` in your session — that does not come here.
+
+  - type: input
+    id: trigger
+    attributes:
+      label: When does it apply
+      description: The situation a person is in when this move is the right one.
+      placeholder: When a test fails and the output is long
+    validations:
+      required: true
+
+  - type: textarea
+    id: move
+    attributes:
+      label: The move
+      description: What to do, written so somebody else can follow it. One move, not a checklist.
+      placeholder: Run the failing command and paste its real output, rather than describing the failure.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Why you believe it works
+      description: |
+        Your own experience is fine — say so plainly. What is not fine is an
+        invented number. Starter techniques ship unmeasured and labelled as
+        such, and the product's whole claim is that it does not fake evidence.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: general
+    attributes:
+      label: Check
+      options:
+        - label: This is not specific to one company, codebase or private tool.
+          required: true
+        - label: It is one move, not a collection of related advice.
+          required: true

@@ -1,0 +1,7 @@
+[Unit]
+Description=Tacit team digest (docs/delivery/low-intrusion-plan.md A2)
+After=tacit-registry.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '%h/go/bin/tacit digest --window 7d --out %h/tacit-team-digest.md'

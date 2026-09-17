@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1098" height="146" viewBox="0 50 1098 146" role="img" aria-label="OpenTacit">
+  <!-- The brand mark: the solid ◆ core framed by two unclosed chevrons —
+       guillemets around knowledge nobody wrote down. The gaps at the top and
+       bottom vertices are the point; never close them. Geometry mirrors
+       markSVG in internal/registry/web/shell.go. -->
+  <g transform="translate(121,24) scale(8)">
+    <path fill="#1f6feb" d="M12 7.4 16.6 12 12 16.6 7.4 12Z"/>
+    <path fill="none" stroke="#1f6feb" stroke-width="2" stroke-linecap="round" d="M9 5 2 12l7 7"/>
+    <path fill="none" stroke="#1f6feb" stroke-width="2" stroke-linecap="round" d="M15 5 22 12l-7 7"/>
+  </g>
+  <text x="349" y="132" dominant-baseline="central" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="116" font-weight="700" letter-spacing="-0.02em" fill="#111823">OpenTacit</text>
+</svg>
