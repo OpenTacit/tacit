@@ -1,0 +1,423 @@
+# Tacit registry HTTP API, OpenAPI 3.1
+#
+# Handwritten, code-first: the Go types in tacit/pkg/contracts are the
+# implementation; the JSON Schemas alongside this file are the normative
+# document contracts; this document maps them onto the HTTP surface.
+# CI enforces agreement via round-trip tests (docs/design/api-standard.md).
+openapi: 3.1.0
+info:
+  title: Tacit registry API
+  version: "1.0.0"
+  description: >
+    The org's AI technique registry: evidence retrieval, the feedback
+    funnel, technique contribution and administration, and the federation
+    surface (technique feeds, tacit-feed/v1). Auth for /v1 is a
+    single X-Tacit-Key header (health and the federation surface are
+    open by design: feeds are for consumption, and private channels
+    are token-gated at the subscription layer).
+servers:
+  - url: http://127.0.0.1:8080
+components:
+  securitySchemes:
+    registryKey:
+      type: apiKey
+      in: header
+      name: X-Tacit-Key
+  schemas:
+    AuditFactEnrichment:
+      $ref: "./audit-fact-enrichment.schema.json"
+    Technique:
+      $ref: "./technique.schema.json"
+    FeedbackEvent:
+      $ref: "./feedback-event.schema.json"
+    FeedbackEventDraft:
+      $ref: "./feedback-event.schema.json#/$defs/draft"
+    Characterization:
+      $ref: "./characterization.schema.json"
+    EvidenceBlock:
+      $ref: "./evidence-block.schema.json"
+    Feed:
+      $ref: "./feed.schema.json"
+    ProviderDescriptor:
+      $ref: "./provider-descriptor.schema.json"
+    Error:
+      type: object
+      properties:
+        error: {type: string}
+      required: [error]
+security:
+  - registryKey: []
+paths:
+  /v1/health:
+    get:
+      summary: Liveness and store counts
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: {type: boolean}
+                  techniques: {type: integer}
+                  events: {type: integer}
+                  outcomes: {type: integer}
+                  external_url:
+                    type: string
+                    description: externally reachable dashboard origin for human-facing links, present when configured
+  /v1/organization/app:
+    get:
+      summary: Organization summary — cohort spread, opportunities, proponents, health (text + structured; feeds tacit_org)
+      parameters:
+        - {name: w, in: query, schema: {type: string, enum: [7d, 30d, 90d, all]}}
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  window: {type: string}
+                  html: {type: string, description: empty — text-first}
+                  text: {type: string}
+                  summary: {type: object}
+  /v1/evidence:
+    post:
+      summary: "Stage 2 retrieval: characterization to evidence block"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/Characterization"}
+      responses:
+        "200":
+          description: Ranked evidence
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/EvidenceBlock"}
+        "400":
+          description: Contract violation
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}
+  /v1/audit-facts/enrich:
+    post:
+      summary: Add the model-inferred half of an audit fact (tools_absent), posted after the turn
+      description: >
+        tools_used records observations. tools_absent records model inference performed
+        off the latency path and posted back by audit_id. Consumers must treat
+        tools_absent as inferred.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/AuditFactEnrichment"}
+      responses:
+        "200":
+          description: Applied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  audit_id: {type: string}
+                  enriched: {type: boolean}
+        "404":
+          description: Unknown audit_id for the inference
+  /v1/feedback:
+    post:
+      summary: Append funnel events (idempotent when drafts carry event_id)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - {$ref: "#/components/schemas/FeedbackEventDraft"}
+                - type: array
+                  items: {$ref: "#/components/schemas/FeedbackEventDraft"}
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted: {type: integer}
+                  duplicates: {type: integer}
+                  rejected:
+                    type: integer
+                    description: >
+                      Events dropped as contradicted by the audit fact log — a
+                      `shown` event for an interaction recorded as a retrieval
+                      pull (surface=mcp), where nothing was shown to a member.
+                      The rest of the batch is still ingested; do not retry.
+                required: [accepted]
+  /v1/contribute:
+    post:
+      summary: Submit a member-drafted technique into the held-out review lane
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, recipe]
+              additionalProperties: true
+      responses:
+        "201":
+          description: Draft held for review
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: {type: string}
+                  status: {type: string}
+  /v1/techniques:
+    get:
+      summary: List techniques (embeddings omitted)
+      responses:
+        "200":
+          description: All techniques
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  techniques:
+                    type: array
+                    items: {$ref: "#/components/schemas/Technique"}
+  /v1/techniques/{id}:
+    get:
+      summary: Fetch one technique
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: The technique
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Technique"}
+        "404":
+          description: Unknown technique
+    delete:
+      summary: Permanently remove a technique and its rollups (events keep their history)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Deleted}
+        "404": {description: Unknown technique}
+  /v1/events:
+    get:
+      summary: Page the append-only event log (created_at cursor, inclusive)
+      description: >
+        Pages may overlap at the cursor timestamp; consumers dedupe by
+        event_id. next_since is empty on the final page.
+      parameters:
+        - {name: since, in: query, schema: {type: string, format: date-time}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 5000, default: 500}}
+      responses:
+        "200":
+          description: One page
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items: {$ref: "#/components/schemas/FeedbackEvent"}
+                  next_since: {type: string}
+                required: [events, next_since]
+  /v1/cohorts:
+    get:
+      summary: The cohorts already in use on this registry
+      description: >
+        What a joining member reads before naming their own cohort: every
+        cohort value the registry has seen, by dimension, most-used first.
+        Aggregate only — dimension, value, and how much the value is used,
+        never who. Sessions counts distinct pseudonymous sessions; shown
+        counts suggestions delivered to the cohort. "derived" marks the
+        dimensions a session fills in by itself (harness, surface), which a
+        member never types. "settable" lists the dimensions a member may set,
+        whether or not anyone has yet, so a first joiner is offered the
+        vocabulary rather than a blank page.
+      responses:
+        "200":
+          description: The directory
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dimensions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        dimension: {type: string}
+                        derived: {type: boolean}
+                        values:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              value: {type: string}
+                              sessions: {type: integer}
+                              shown: {type: integer}
+                            required: [value, sessions, shown]
+                      required: [dimension, values]
+                  settable:
+                    type: array
+                    items: {type: string}
+                required: [dimensions, settable]
+  /v1/admin/techniques/{id}:
+    post:
+      summary: "Reviewer edit: partial update of content fields (re-embeds)"
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: {type: string}
+                description: {type: string}
+                recipe: {type: string}
+                applies_when: {type: string}
+                not_when: {type: string}
+                tags:
+                  type: array
+                  items: {type: string}
+      responses:
+        "200": {description: Applied}
+        "404": {description: Unknown technique}
+  /v1/admin/promote:
+    post:
+      summary: Set a technique's lifecycle status (promote drafts with stable; reject with retired)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: {type: string}
+                status: {enum: [stable, draft, retired], default: stable}
+      responses:
+        "200": {description: Applied}
+        "404": {description: Unknown draft}
+  /v1/admin/sync-techniques:
+    post:
+      summary: Reload git-curated techniques and re-embed
+      responses:
+        "200": {description: Sync result}
+  /v1/admin/recompute:
+    post:
+      summary: Force an outcome rollup recompute
+      responses:
+        "200": {description: Recompute result}
+  /v1/admin/subscriptions:
+    get:
+      summary: List federation subscriptions with poll status
+      responses:
+        "200": {description: Subscriptions}
+    post:
+      summary: Add or update a federation subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [feed_url]
+              properties:
+                feed_url: {type: string}
+                auth_token: {type: string}
+                trust: {enum: [review, auto-accept], default: review}
+                prefix: {type: string}
+                poll_seconds: {type: integer, minimum: 60}
+      responses:
+        "200": {description: Stored}
+  /v1/admin/subscriptions/{id}:
+    delete:
+      summary: Remove a subscription (imported techniques remain, flagged)
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Removed}
+  /v1/admin/poll-feeds:
+    post:
+      summary: Poll all subscriptions now (also runs on the scheduler)
+      responses:
+        "200": {description: Poll results}
+  /.well-known/tacit.json:
+    get:
+      summary: Federation provider descriptor (discovery)
+      security: []
+      responses:
+        "200":
+          description: This registry's provider descriptor
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ProviderDescriptor"}
+        "404":
+          description: Federation publishing is disabled
+  /f/{channel}/feed.json:
+    get:
+      summary: One channel's technique feed (tacit-feed/v1)
+      security: []
+      parameters:
+        - {name: channel, in: path, required: true, schema: {type: string}}
+        - {name: page, in: query, schema: {type: string}, description: archived-page cursor}
+      responses:
+        "200":
+          description: The feed document
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Feed"}
+        "404":
+          description: Unknown channel
+  /f/techniques/{id}.md:
+    get:
+      summary: One published technique in canonical markdown+frontmatter form
+      security: []
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: The technique document
+          content:
+            text/markdown: {}
+        "404":
+          description: Technique is unpublished
+  /v1/openapi.yaml:
+    get:
+      summary: This document
+      security: []
+      responses:
+        "200":
+          description: The OpenAPI specification
+          content:
+            application/yaml: {}
+  /v1/schemas/{name}:
+    get:
+      summary: One normative JSON Schema by filename
+      security: []
+      parameters:
+        - {name: name, in: path, required: true, schema: {type: string}}
+      responses:
+        "200":
+          description: The schema
+          content:
+            application/schema+json: {}
+        "404":
+          description: Unknown schema

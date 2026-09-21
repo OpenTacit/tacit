@@ -1,0 +1,36 @@
+// Tacit for Amp: self-serve wiring. Amp has no plugin marketplace, so
+// installation is two copies plus this settings merge:
+//
+//   1. The event plugin (the hooks.json equivalent: capture + in-flow
+//      coaching):
+//        cp plugins/amp/plugins/tacit.ts ~/.config/amp/plugins/
+//      (or a project's .amp/plugins/ to coach one repo only). Reload with the
+//      command palette's `plugins: reload`. Set TACIT_BIN in Amp's
+//      environment if the tacit binary is not at {{TACIT_BIN}}.
+//
+//   2. The skills (Amp reads SKILL.md natively and loads them on demand by
+//      name/description: no invocation syntax to learn):
+//        cp -r plugins/amp/skills/* ~/.config/agents/skills/
+//      (or a project's .agents/skills/). Copy: the "amp.skills.path"
+//      setting may not load skills from this checkout
+//      (amp 0.0.1783486870; skills placed there never loaded).
+//
+//   3. Merge the settings below into ~/.config/amp/settings.json (or
+//      settings.jsonc: comments survive there) or a project's
+//      .amp/settings.json. For an org-managed rollout, the same keys go in
+//      /etc/ampcode/managed-settings.json (Linux) or
+//      /Library/Application Support/ampcode/managed-settings.json (macOS),
+//      which override individual settings.
+//
+// The plugin POSTs events straight to the local hook agent, falling back to
+// `tacit hook-relay amp` (which auto-starts the agent) when nothing is
+// listening; the agent idle-exits when quiet: nothing to run by hand.
+{
+  // The tacit_search MCP tool: the pull-based "ask path".
+  "amp.mcpServers": {
+    "tacit": {
+      "command": "{{TACIT_BIN}}",
+      "args": ["mcp"]
+    }
+  }
+}

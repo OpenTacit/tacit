@@ -1,0 +1,13 @@
+{
+  "name": "tacit",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Tacit: your organization's playbook riding along in Gemini CLI — in-flow suggestions, the tacit_search ask path, and the /tacit:* commands.",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "tacit": {
+      "command": "{{TACIT_BIN}}",
+      "args": ["mcp"]
+    }
+  }
+}

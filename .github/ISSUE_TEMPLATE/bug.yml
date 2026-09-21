@@ -1,0 +1,64 @@
+name: Bug report
+description: Something does not work the way it says it does
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report a security problem here — mail team@opentacit.com
+        instead. See SECURITY.md in the repository root.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what happened, and what you expected instead.
+      placeholder: |
+        I ran `tacit connect` in a checkout with Codex installed.
+        It reported success, but no hook fired on my next turn.
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `tacit doctor`
+      description: |
+        This answers most of the questions we would otherwise ask — version,
+        which harnesses are wired, whether the registry is reachable, which
+        embedder is loaded. It redacts keys before printing.
+
+        If the registry itself will not start, paste its log instead.
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: "`tacit version`. Say \"built from source\" and the commit if it is not a release."
+      placeholder: v0.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How it was installed
+      options:
+        - install.sh
+        - container image
+        - built from source
+        - not sure
+    validations:
+      required: true
+
+  - type: input
+    id: harness
+    attributes:
+      label: Which AI tool
+      description: Claude Code, Codex, Gemini CLI, Copilot CLI, Cursor, Amp, pi, omp, opencode — or none, if this is not about a harness.
+      placeholder: Claude Code
+    validations:
+      required: false

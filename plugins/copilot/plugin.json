@@ -1,0 +1,6 @@
+{
+  "name": "tacit",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Tacit: your organization's playbook riding along in Copilot CLI — session capture, the tacit_search ask path, the tacit-* skills, and the tacit-review agent."
+}

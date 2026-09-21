@@ -1,0 +1,37 @@
+{
+  "candidates": [
+    {
+      "id": "ask-for-a-diagram",
+      "document": "Ask for a diagram you can keep. A visual topic shown as prose or ASCII is hard to remember. Ask for a real diagram to get a visual reference that you can use again.. explanation of a spatial/structural/visual topic delivered as text only. would a diagram convey this better than the prose the model produced?. The topic is spatial, structural, or relational, and the model gave only prose or ASCII. A labelled diagram would make the topic clearer and easier to remember.. exploration. research. modality. visual. diagram. output-format"
+    },
+    {
+      "id": "make-it-applied",
+      "document": "Make it solve your real problem, not just define terms. Give the model your real task instead of asking a series of separate definition questions. It can then apply the terms to a step-by-step solution.. multiple separate 'explain' / 'define' questions with no concrete task. is the user collecting definitions rather than solving a real problem?. The user asks a series of \"explain/define\" questions and clearly has a task or problem behind them.. research. exploration. prompting. reasoning. problem-solving"
+    },
+    {
+      "id": "read-images-directly",
+      "document": "Attach the screenshot instead of retyping it. Attach an image, table, screenshot, or PDF instead of transcribing it. This saves time and avoids transcription errors.. user pastes a textual description or transcription of a UI, table, or image. did the user manually transcribe visual content the model could read?. The user transcribed or described an image, table, screenshot, or PDF by hand, but an attachment of the source was possible.. verification. exploration. modality. vision. data-entry"
+    },
+    {
+      "id": "tailor-the-ask",
+      "document": "Tell it who you are and why you're asking. A generic \"explain X\" prompt gives a generic answer. State your role, level, and goal, and the model adjusts depth, approach, and examples to you.. short generic 'explain X' or 'what is X' prompt with no stated goal or level. did the user omit their role, skill level, or why they want to know?. The user asks a broad \"explain X\" or \"what is X\" question and does not give their role, their level, or the reason they want to know.. research. conversation. prompting. context. personalization"
+    },
+    {
+      "id": "use-internal-data-connector",
+      "document": "Query the source instead of pasting rows. When data is already in a connected internal system, point the model at it through the org's connector. That is faster and more current than pasted rows, and it prevents copy errors.. user pasted tabular/CSV-like rows that originate from an internal source. is the pasted data available through a connected internal system instead?. The user manually pasted tabular data (CSV rows, a table dump) that is in an internal system, and the organization's connector can reach that system. A live query is more accurate and more current than the pasted snapshot.. research. tool-use. org-tool. data. connector. proprietary"
+    }
+  ],
+  "entries": [
+    {"id":"diagram-exact","slice":"exact","characterization":{"summary_text":"A spatial architecture was explained as prose and ASCII; ask for a labelled diagram."},"relevance":{"ask-for-a-diagram":2,"make-it-applied":0,"read-images-directly":0,"tailor-the-ask":0,"use-internal-data-connector":0}},
+    {"id":"diagram-semantic","slice":"semantic","characterization":{"summary_text":"I cannot keep the relationships between these system parts straight from the text. A picture I can save would help.","task_type":"architecture"},"relevance":{"ask-for-a-diagram":2,"make-it-applied":0,"read-images-directly":0,"tailor-the-ask":0,"use-internal-data-connector":0}},
+    {"id":"applied-exact","slice":"exact","characterization":{"summary_text":"The user asks several explain and define questions without applying them to the real debugging problem."},"relevance":{"ask-for-a-diagram":0,"make-it-applied":2,"read-images-directly":0,"tailor-the-ask":0,"use-internal-data-connector":0}},
+    {"id":"applied-semantic","slice":"semantic","characterization":{"summary_text":"I know the terms now, but I still need a step-by-step way to use them on the fault in my service.","task_type":"debugging"},"relevance":{"ask-for-a-diagram":0,"make-it-applied":2,"read-images-directly":0,"tailor-the-ask":0,"use-internal-data-connector":0}},
+    {"id":"image-exact","slice":"exact","characterization":{"summary_text":"The user manually retyped a table from a screenshot instead of attaching the image.","modalities":["image"]},"relevance":{"ask-for-a-diagram":0,"make-it-applied":0,"read-images-directly":2,"tailor-the-ask":0,"use-internal-data-connector":0}},
+    {"id":"image-semantic","slice":"semantic","characterization":{"summary_text":"I copied every value out of a screen by hand so the model could inspect it.","task_type":"data-extraction"},"relevance":{"ask-for-a-diagram":0,"make-it-applied":0,"read-images-directly":2,"tailor-the-ask":0,"use-internal-data-connector":0}},
+    {"id":"tailor-exact","slice":"exact","characterization":{"summary_text":"A generic explain question omitted the user's role, skill level, and goal."},"relevance":{"ask-for-a-diagram":0,"make-it-applied":0,"read-images-directly":0,"tailor-the-ask":2,"use-internal-data-connector":0}},
+    {"id":"tailor-semantic","slice":"semantic","characterization":{"summary_text":"The answer was too broad because the prompt did not say what I already know or what I need this for.","task_type":"learning"},"relevance":{"ask-for-a-diagram":0,"make-it-applied":0,"read-images-directly":0,"tailor-the-ask":2,"use-internal-data-connector":0}},
+    {"id":"connector-exact","slice":"exact","characterization":{"summary_text":"The user pasted warehouse rows instead of querying the connected internal data source.","internal_resources_in_play":["warehouse"]},"relevance":{"ask-for-a-diagram":0,"make-it-applied":0,"read-images-directly":0,"tailor-the-ask":0,"use-internal-data-connector":2}},
+    {"id":"connector-semantic","slice":"semantic","characterization":{"summary_text":"This copied company report is already stale; use the approved tool to fetch the current records.","task_type":"data-analysis","internal_resources_in_play":["company data connector"]},"relevance":{"ask-for-a-diagram":0,"make-it-applied":0,"read-images-directly":0,"tailor-the-ask":0,"use-internal-data-connector":2}},
+    {"id":"no-match-unit-test","slice":"no-match","characterization":{"summary_text":"Write table-driven unit tests for a Go date parser and cover leap years.","task_type":"coding"},"relevance":{"ask-for-a-diagram":0,"make-it-applied":0,"read-images-directly":0,"tailor-the-ask":0,"use-internal-data-connector":0}}
+  ]
+}

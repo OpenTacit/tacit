@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "tacit": {
+      "command": "{{TACIT_BIN}}",
+      "args": ["mcp"]
+    }
+  }
+}

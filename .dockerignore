@@ -1,0 +1,12 @@
+# Allowlist: the image build (Dockerfile) needs the prebuilt binaries, the docs
+# tree for the dashboard viewer, and the license files a redistribution has to
+# carry. Everything else — node_modules, local data dirs, the onnx runtime tgz —
+# stays out of the build context. The generated digest is re-excluded after the
+# docs allowlist (later lines win) so it never enters the image.
+*
+!dist/
+!docs/
+docs/team-digest.md
+!LICENSE
+!NOTICE
+!THIRD-PARTY-NOTICES.md

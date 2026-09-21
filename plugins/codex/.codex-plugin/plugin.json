@@ -1,0 +1,10 @@
+{
+  "name": "tacit",
+  "description": "Connects Codex CLI to the organization's Tacit playbook and records aggregate outcomes.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tacit"
+  },
+  "homepage": "https://github.com/opentacit/tacit",
+  "license": "Apache-2.0"
+}

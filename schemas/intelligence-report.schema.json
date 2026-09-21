@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/intelligence-report.schema.json",
+  "title": "Federated import outcome report",
+  "type": "object",
+  "required": ["version", "reporter_provider_id", "reporter_public_key", "generated_at", "imports", "signature"],
+  "properties": {
+    "version": {"const": "tacit-intelligence/v1"},
+    "reporter_provider_id": {"type": "string", "minLength": 1},
+    "reporter_public_key": {"type": "string", "pattern": "^ed25519:"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "imports": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "required": ["origin", "accepted_at"],
+        "properties": {
+          "origin": {
+            "type": "object",
+            "required": ["provider_id", "provider_key", "entry_id", "channel_id", "content_hash", "imported_at"],
+            "properties": {
+              "provider_id": {"type": "string", "minLength": 1},
+              "provider_key": {"type": "string", "pattern": "^ed25519:"},
+              "entry_id": {"type": "string", "minLength": 1},
+              "channel_id": {"type": "string"},
+              "content_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+              "imported_at": {"type": "string", "format": "date-time"}
+            },
+            "additionalProperties": false
+          },
+          "accepted_at": {"type": "string", "format": "date-time"},
+          "outcome": {
+            "type": "object",
+            "required": ["window_start", "window_end", "shown", "adopted", "helped", "dismissed", "weighted_adopted", "weighted_helped", "weighted_dismissed", "sample_size"],
+            "properties": {
+              "window_start": {"type": "string", "format": "date-time"},
+              "window_end": {"type": "string", "format": "date-time"},
+              "shown": {"type": "integer", "minimum": 0},
+              "adopted": {"type": "integer", "minimum": 0},
+              "helped": {"type": "integer", "minimum": 0},
+              "dismissed": {"type": "integer", "minimum": 0},
+              "weighted_adopted": {"type": "number", "minimum": 0},
+              "weighted_helped": {"type": "number", "minimum": 0},
+              "weighted_dismissed": {"type": "number", "minimum": 0},
+              "sample_size": {"type": "integer", "minimum": 10}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "signature": {"type": "string", "pattern": "^ed25519:"}
+  },
+  "additionalProperties": false
+}

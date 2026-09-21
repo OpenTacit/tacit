@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/feed.schema.json",
+  "title": "Technique feed (tacit-feed/v1)",
+  "description": "One channel's feed document (tacit/pkg/feed.Feed). Entries are Ed25519-signed technique publications, updates, or retractions; attestations contain aggregates.",
+  "type": "object",
+  "required": ["version", "channel", "updated", "entries"],
+  "properties": {
+    "version": {"const": "tacit-feed/v1"},
+    "channel": {
+      "type": "object",
+      "required": ["id", "provider"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "provider": {"type": "string", "minLength": 1},
+        "title": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "updated": {"type": "string", "format": "date-time"},
+    "next_page": {"type": "string"},
+    "entries": {"type": "array", "items": {"$ref": "#/$defs/entry"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "technique": {
+      "description": "Embedded technique. Minimal envelope constraints here; the full normative shape is technique.schema.json, which embedded techniques must also satisfy.",
+      "type": "object",
+      "required": ["id", "name", "scope", "recipe"],
+      "properties": {
+        "id": {"type": "string", "minLength": 2},
+        "name": {"type": "string", "minLength": 1},
+        "scope": {"enum": ["general", "org"]},
+        "recipe": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "entry": {
+      "type": "object",
+      "required": ["id", "kind", "updated"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["technique", "retraction"]},
+        "updated": {"type": "string", "format": "date-time"},
+        "title": {"type": "string"},
+        "content_url": {"type": "string"},
+        "content_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+        "technique": {"$ref": "#/$defs/technique"},
+        "attestation": {
+          "type": "object",
+          "required": ["outcomes", "granularity"],
+          "properties": {
+            "outcomes": {
+              "type": "object",
+              "required": ["helped_rate", "sample_size"],
+              "properties": {
+                "helped_rate": {"type": "number", "minimum": 0, "maximum": 1},
+                "sample_size": {"type": "integer", "minimum": 1},
+                "window_days": {"type": "integer", "minimum": 1}
+              },
+              "additionalProperties": false
+            },
+            "granularity": {"enum": ["org"]}
+          },
+          "additionalProperties": false
+        },
+        "reason": {"type": "string"},
+        "signature": {"type": "string", "pattern": "^ed25519:[A-Za-z0-9+/]+=*$"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

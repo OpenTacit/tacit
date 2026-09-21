@@ -1,0 +1,82 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "tacit-relay",
+            "description": "Tacit capture: session open (auto-starts the local hook agent)",
+            "command": "{{TACIT_BIN}} hook-relay gemini",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "BeforeAgent": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "tacit-relay",
+            "description": "Tacit capture: member prompt (reaction/adoption detection, parked delivery)",
+            "command": "{{TACIT_BIN}} hook-relay gemini",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "tacit-relay",
+            "description": "Tacit capture: tool call about to run",
+            "command": "{{TACIT_BIN}} hook-relay gemini",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "tacit-relay",
+            "description": "Tacit capture: completed tool call",
+            "command": "{{TACIT_BIN}} hook-relay gemini",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "tacit-relay",
+            "description": "Tacit: turn-end gate — may render a ◆ Tacit suggestion under the answer",
+            "command": "{{TACIT_BIN}} hook-relay gemini",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "name": "tacit-relay",
+            "description": "Tacit capture: session close",
+            "command": "{{TACIT_BIN}} hook-relay gemini",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
+  }
+}

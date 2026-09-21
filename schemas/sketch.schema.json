@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/sketch.schema.json",
+  "title": "Technique sketch",
+  "description": "One locally distilled technique sketch emitted by the opt-in mining channel (tacit/pkg/contracts.Sketch). The emitted artifact contains distilled technique data and keeps transcript text out. session_hash uses an organization-specific salt to support anonymous occurrence counts.",
+  "type": "object",
+  "required": ["session_hash", "trigger", "move"],
+  "properties": {
+    "sketch_id": {"type": "string"},
+    "session_hash": {"type": "string", "pattern": "^[a-f0-9]{16,64}$"},
+    "trigger": {"type": "string", "minLength": 1, "maxLength": 500},
+    "move": {"type": "string", "minLength": 1, "maxLength": 2000},
+    "tools": {"type": "array", "items": {"type": "string"}, "maxItems": 20},
+    "task_type": {"type": "string"},
+    "harness": {"type": "string"},
+    "segment": {"type": "object", "additionalProperties": {"type": "string"}},
+    "technique_id": {"type": "string"},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false
+}

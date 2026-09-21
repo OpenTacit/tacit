@@ -1,0 +1,21 @@
+{
+  "name": "tacit",
+  "owner": {
+    "name": "Tacit"
+  },
+  "description": "Tacit playbook integration for agent harnesses.",
+  "plugins": [
+    {
+      "name": "tacit",
+      "source": "./claude-code",
+      "description": "Connect Claude Code to the organization's Tacit registry and record aggregate outcomes. The relay starts the local hook agent when needed.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "tacit-codex",
+      "source": "./codex",
+      "description": "Connect Codex CLI to the organization's Tacit registry through command hooks. The relay starts the local hook agent when needed.",
+      "version": "0.1.0"
+    }
+  ]
+}

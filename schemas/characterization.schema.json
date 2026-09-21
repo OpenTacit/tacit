@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/characterization.schema.json",
+  "title": "Characterization",
+  "description": "Stage 1 output describing one interaction for registry retrieval. This is the POST /v1/evidence body (tacit/pkg/contracts.Characterization).",
+  "type": "object",
+  "required": ["summary_text"],
+  "properties": {
+    "audit_id": {"type": "string"},
+    "session_hash": {"type": "string", "pattern": "^[a-f0-9]{16,64}$"},
+    "model": {"type": "string"},
+    "summary_text": {"type": "string", "minLength": 1},
+    "task_type": {"type": "string"},
+    "domain": {"type": "string"},
+    "modalities": {"type": "array", "items": {"type": "string"}},
+    "tools_used": {"type": "array", "items": {"type": "string"}},
+    "tools_absent": {"type": "array", "items": {"type": "string"}},
+    "internal_resources_in_play": {"type": "array", "items": {"type": "string"}},
+    "harness": {"type": "string"},
+    "surface": {"type": "string"},
+    "skill_level": {"type": "string"},
+    "used_technique_ids": {"type": "array", "items": {"type": "string"}},
+    "segment": {"type": "object", "additionalProperties": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

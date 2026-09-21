@@ -1,0 +1,63 @@
+# Dockerfile rot guard (docs/distribution/docker-plan.md): whenever the image
+# inputs change, build the amd64 image for real — binary, onnx-fetch, layer
+# assembly — without pushing. Release pushes happen in release.yml.
+name: docker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - cmd/tacit/onnxfetch.go
+      - cmd/tacit/doctor.go
+      - internal/onnxassets/**
+      - .github/workflows/docker.yml
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - cmd/tacit/onnxfetch.go
+      - cmd/tacit/doctor.go
+      - internal/onnxassets/**
+      - .github/workflows/docker.yml
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - name: Build the linux binary the Dockerfile expects
+        env:
+          CGO_ENABLED: "1"
+        run: |
+          mkdir dist
+          go build -tags onnx,pg -trimpath -o dist/tacit-linux-amd64 ./cmd/tacit
+      - name: Build the image (no push)
+        run: docker buildx build --platform linux/amd64 -t tacit-ci .
+      - name: Boot it and probe health
+        run: |
+          docker run -d --name tacit-ci -p 8080:8080 tacit-ci
+          for i in $(seq 1 15); do
+            sleep 1
+            if docker exec tacit-ci /usr/local/bin/tacit doctor --probe; then live=1; break; fi
+          done
+          if [ -z "$live" ]; then docker logs tacit-ci; exit 1; fi
+      # The pinned runtime has to load, not merely be in the image.
+      # onnxruntime_go asks the library it opens for a C API version, an older
+      # library refuses, and the registry answers that refusal by serving
+      # hashing-v1 — so a healthy container and a broken embedder look the
+      # same from outside. Health reports which one is serving.
+      - name: The image serves semantic retrieval, not the lexical fallback
+        run: |
+          health=$(curl -sf --max-time 5 http://127.0.0.1:8080/v1/health) || {
+            docker logs tacit-ci; exit 1; }
+          echo "$health"
+          if [ "$(echo "$health" | jq -r .embed_model)" != onnx/all-MiniLM-L6-v2 ]; then
+            echo "::error::the image is not serving the onnx embedder" >&2
+            docker logs tacit-ci
+            exit 1
+          fi

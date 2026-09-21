@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "{{TACIT_BIN}} hook-relay copilot sessionStart",
+        "command": "{{TACIT_BIN}} hook-relay copilot sessionStart",
+        "timeoutSec": 15
+      }
+    ],
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "bash": "{{TACIT_BIN}} hook-relay copilot userPromptSubmitted",
+        "command": "{{TACIT_BIN}} hook-relay copilot userPromptSubmitted",
+        "timeoutSec": 15
+      }
+    ],
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "{{TACIT_BIN}} hook-relay copilot preToolUse",
+        "command": "{{TACIT_BIN}} hook-relay copilot preToolUse",
+        "timeoutSec": 10
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "{{TACIT_BIN}} hook-relay copilot postToolUse",
+        "command": "{{TACIT_BIN}} hook-relay copilot postToolUse",
+        "timeoutSec": 10
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "{{TACIT_BIN}} hook-relay copilot agentStop",
+        "command": "{{TACIT_BIN}} hook-relay copilot agentStop",
+        "timeoutSec": 15
+      }
+    ],
+    "sessionEnd": [
+      {
+        "type": "command",
+        "bash": "{{TACIT_BIN}} hook-relay copilot sessionEnd",
+        "command": "{{TACIT_BIN}} hook-relay copilot sessionEnd",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

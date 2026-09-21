@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/canonical-record.schema.json",
+  "title": "Canonical interaction record",
+  "description": "The source-agnostic record every capture source produces (tacit/pkg/contracts.CanonicalRecord).",
+  "type": "object",
+  "required": ["schema_version", "source", "messages", "tool_calls", "segment"],
+  "properties": {
+    "schema_version": {"type": "integer", "minimum": 1},
+    "source": {"type": "string", "minLength": 1},
+    "session_id": {"type": "string"},
+    "harness": {"type": "string"},
+    "surface": {"type": "string"},
+    "model": {"type": "string"},
+    "created_at": {"type": "string"},
+    "status": {"type": "string"},
+    "messages": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "required": ["role", "text"],
+        "properties": {
+          "role": {"type": "string"},
+          "text": {"type": "string"},
+          "modalities": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "tool_calls": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string"},
+          "arguments": {"type": "string"},
+          "output": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "cost_usd": {"type": ["number", "null"]},
+    "tokens": {"type": ["integer", "null"]},
+    "segment": {"type": ["object", "null"], "additionalProperties": {"type": "string"}},
+    "actors": {"type": "array", "items": {"type": "string"}},
+    "internal_resources_in_play": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/feedback-event.schema.json",
+  "title": "Feedback event",
+  "description": "One append-only outcome event as stored (tacit/pkg/contracts.FeedbackEvent). The POST /v1/feedback body is the draft form in $defs/draft. Prose companion: schemas/feedback-event.md.",
+  "type": "object",
+  "required": ["event_id", "audit_id", "technique_id", "stage", "segment", "confidence", "created_at"],
+  "properties": {
+    "event_id": {"type": "string", "minLength": 1},
+    "audit_id": {"type": "string"},
+    "technique_id": {"type": "string", "minLength": 1},
+    "technique_version": {"type": "integer", "minimum": 1},
+    "stage": {"$ref": "#/$defs/stage"},
+    "value": {"$ref": "#/$defs/value"},
+    "segment": {"$ref": "#/$defs/segment"},
+    "task_type": {"type": "string"},
+    "rank_shown": {"type": "integer", "minimum": 1},
+    "confidence": {"enum": ["explicit", "inferred", "verification"]},
+    "delivery": {"enum": ["suggested", "applied"]},
+    "source": {"$ref": "#/$defs/source"},
+    "similarity": {"type": "number"},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "stage": {"enum": ["shown", "adopted", "helped", "dismissed", "declined", "shadow_shown", "shadow_declined"]},
+    "source": {"enum": ["ambient", "pull"]},
+    "value": {"anyOf": [{"type": "boolean"}, {"type": "string"}, {"type": "null"}]},
+    "segment": {"type": "object", "additionalProperties": {"type": "string"}},
+    "draft": {
+      "title": "Feedback event draft (write form)",
+      "type": "object",
+      "required": ["technique_id", "stage"],
+      "properties": {
+        "event_id": {"type": "string"},
+        "audit_id": {"type": "string"},
+        "technique_id": {"type": "string", "minLength": 1},
+        "technique_version": {"type": "integer", "minimum": 1},
+        "stage": {"$ref": "#/$defs/stage"},
+        "value": {"$ref": "#/$defs/value"},
+        "segment": {"$ref": "#/$defs/segment"},
+        "task_type": {"type": "string"},
+        "rank_shown": {"type": "integer", "minimum": 1},
+        "confidence": {"enum": ["explicit", "inferred", "verification"]},
+        "delivery": {"enum": ["suggested", "applied"]},
+        "source": {"$ref": "#/$defs/source"},
+        "similarity": {"type": "number"},
+        "created_at": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

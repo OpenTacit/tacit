@@ -1,0 +1,1021 @@
+{
+  "schema": 1,
+  "scenario": "software-vendor",
+  "generated_by": "curated",
+  "seed": 20260615,
+  "org": {
+    "name": "Meridian Data",
+    "industry": "B2B cloud data platform",
+    "tagline": "The warehouse-native analytics platform",
+    "description": "A ~250-person software vendor selling a cloud data platform. Engineering works in a Go/TypeScript monorepo driven by an internal build CLI (merc), ships behind a feature-flag/config service (Beacon), designs through an RFC-and-service-catalog system (Atlas), queries an internal warehouse with a CLI (mq), runs incidents on Sentinel with runbooks, builds and deploys through Forge CI/CD, styles UI with the Compass design system, bills through Ledger, observes with Pulse, and grounds answers in the Nexus internal-docs RAG."
+  },
+  "window": {
+    "start_date": "2026-06-15",
+    "days": 30
+  },
+  "roles": [
+    {
+      "value": "engineer",
+      "weight": 0.52
+    },
+    {
+      "value": "senior-engineer",
+      "weight": 0.3
+    },
+    {
+      "value": "staff-engineer",
+      "weight": 0.1
+    },
+    {
+      "value": "em",
+      "weight": 0.08
+    }
+  ],
+  "harnesses": [
+    {
+      "value": "claude-code",
+      "weight": 0.55
+    },
+    {
+      "value": "codex",
+      "weight": 0.18
+    },
+    {
+      "value": "amp",
+      "weight": 0.12
+    },
+    {
+      "value": "pi",
+      "weight": 0.09
+    },
+    {
+      "value": "opencode",
+      "weight": 0.06
+    }
+  ],
+  "teams": [
+    {
+      "id": "platform",
+      "label": "Platform",
+      "function": "infrastructure",
+      "domain": "backend",
+      "size": 12,
+      "maturity": 0.85
+    },
+    {
+      "id": "payments",
+      "label": "Payments",
+      "function": "product-eng",
+      "domain": "backend",
+      "size": 10,
+      "maturity": 0.7
+    },
+    {
+      "id": "data-platform",
+      "label": "Data Platform",
+      "function": "data-eng",
+      "domain": "data",
+      "size": 9,
+      "maturity": 0.75,
+      "harnesses": [
+        {
+          "value": "claude-code",
+          "weight": 0.4
+        },
+        {
+          "value": "codex",
+          "weight": 0.3
+        },
+        {
+          "value": "amp",
+          "weight": 0.15
+        },
+        {
+          "value": "pi",
+          "weight": 0.1
+        },
+        {
+          "value": "opencode",
+          "weight": 0.05
+        }
+      ]
+    },
+    {
+      "id": "mobile",
+      "label": "Mobile",
+      "function": "product-eng",
+      "domain": "mobile",
+      "size": 8,
+      "maturity": 0.5
+    },
+    {
+      "id": "growth",
+      "label": "Growth",
+      "function": "product-eng",
+      "domain": "frontend",
+      "size": 7,
+      "maturity": 0.6
+    },
+    {
+      "id": "security",
+      "label": "Security",
+      "function": "security",
+      "domain": "backend",
+      "size": 5,
+      "maturity": 0.55
+    },
+    {
+      "id": "sre",
+      "label": "SRE",
+      "function": "infrastructure",
+      "domain": "infra",
+      "size": 6,
+      "maturity": 0.8
+    },
+    {
+      "id": "devex",
+      "label": "Developer Experience",
+      "function": "devex",
+      "domain": "backend",
+      "size": 4,
+      "maturity": 0.92,
+      "harnesses": [
+        {
+          "value": "claude-code",
+          "weight": 0.4
+        },
+        {
+          "value": "amp",
+          "weight": 0.3
+        },
+        {
+          "value": "opencode",
+          "weight": 0.2
+        },
+        {
+          "value": "pi",
+          "weight": 0.1
+        }
+      ]
+    }
+  ],
+  "usage": {
+    "base_sessions_per_active_day": 3.0,
+    "growth_factor": 2.4,
+    "show_rate": 0.52,
+    "dismiss_rate": 0.16,
+    "decline_rate": 0.03,
+    "inferred_share": 0.7,
+    "adoption_midpoint": 0.4,
+    "adoption_steepness": 8.0,
+    "mcp_share": 0.16
+  },
+  "techniques": [
+    {
+      "id": "query-warehouse-with-mq",
+      "name": "Query the warehouse with mq instead of pasting rows",
+      "description": "Pasting exported rows into the prompt is lossy and stale. The internal `mq` CLI lets the agent query the warehouse directly, so it works from live, complete data.",
+      "scope": "org",
+      "tags": [
+        "warehouse",
+        "sql",
+        "data",
+        "data-platform"
+      ],
+      "task_types": [
+        "data-extraction",
+        "debugging"
+      ],
+      "triggers": [
+        {
+          "heuristic": "user pastes tabular rows or CSV exported from the warehouse"
+        }
+      ],
+      "applies_when": "The question is about data that lives in the Meridian warehouse and the user has pasted or described rows by hand.",
+      "not_when": "The data is not in the warehouse, or the user needs a one-off value they already have in front of them.",
+      "recipe": "Run `mq query \"SELECT ... FROM <table> WHERE ...\"` against the warehouse and reason from the result set, instead of pasting rows. Use `mq schema <table>` first if you're unsure of the columns.",
+      "before_after": "Before: a truncated CSV paste and guesses about the schema. After: a live `mq` query over the real table.",
+      "shipped": "2025-02",
+      "introduced_day": 0,
+      "popularity": 0.8,
+      "strong_teams": [
+        "data-platform",
+        "growth"
+      ],
+      "weak_teams": [
+        "payments",
+        "mobile"
+      ],
+      "adoption_rate": 0.68,
+      "helped_rate": 0.82
+    },
+    {
+      "id": "scaffold-service-with-merc",
+      "name": "Scaffold a new service with merc new",
+      "description": "Hand-writing service boilerplate drifts from the monorepo's conventions. `merc new service` generates a service that already wires up config, logging, health checks and CI.",
+      "scope": "org",
+      "tags": [
+        "codegen",
+        "scaffolding",
+        "monorepo",
+        "delivery"
+      ],
+      "task_types": [
+        "editing",
+        "architecture"
+      ],
+      "triggers": [
+        {
+          "heuristic": "user is creating a new service or package from scratch in the monorepo"
+        }
+      ],
+      "applies_when": "The user is starting a new service or component inside the Meridian monorepo.",
+      "not_when": "The work is a change to an existing service rather than a new one.",
+      "recipe": "Run `merc new service <name>` (or `merc new lib <name>`) to scaffold from the golden template, then fill in the handlers. Don't hand-copy another service's boilerplate.",
+      "before_after": "Before: copied boilerplate that missed the new health-check contract. After: a `merc`-scaffolded service that passed CI on the first push.",
+      "shipped": "2024-11",
+      "introduced_day": 0,
+      "popularity": 0.6,
+      "strong_teams": [
+        "platform",
+        "payments"
+      ],
+      "weak_teams": [
+        "mobile"
+      ],
+      "adoption_rate": 0.6,
+      "helped_rate": 0.78
+    },
+    {
+      "id": "check-beacon-flags-before-debugging",
+      "name": "Check Beacon flag state before chasing a config bug",
+      "description": "Behaviour that differs by environment is usually a feature flag, not a code bug. Reading the Beacon flag state first avoids a fruitless code hunt.",
+      "scope": "org",
+      "tags": [
+        "feature-flags",
+        "config",
+        "debugging",
+        "delivery"
+      ],
+      "task_types": [
+        "debugging"
+      ],
+      "triggers": [
+        {
+          "heuristic": "a bug reproduces in one environment but not another"
+        }
+      ],
+      "applies_when": "A behaviour differs between environments or users and the code path looks identical.",
+      "not_when": "The failure is a hard crash or compile error unrelated to configuration.",
+      "recipe": "Run `beacon get <flag>` / `beacon eval <flag> --context <env-or-user>` to see the resolved flag state for the failing case before reading code. Compare the resolved values across the environments that differ.",
+      "before_after": "Before: an afternoon reading request handlers. After: `beacon eval` showed the flag was off in prod.",
+      "shipped": "2025-01",
+      "introduced_day": 2,
+      "popularity": 0.7,
+      "strong_teams": [
+        "payments",
+        "platform",
+        "growth"
+      ],
+      "adoption_rate": 0.62,
+      "helped_rate": 0.8
+    },
+    {
+      "id": "draft-rfc-from-atlas-template",
+      "name": "Draft an Atlas RFC from the golden template",
+      "description": "A blank doc invites an off-format RFC that review bounces. Generating from the Atlas template gets the required sections (context, options, risks, rollout) right the first time.",
+      "scope": "org",
+      "tags": [
+        "rfc",
+        "design-doc",
+        "planning",
+        "architecture"
+      ],
+      "task_types": [
+        "planning",
+        "architecture"
+      ],
+      "triggers": [
+        {
+          "heuristic": "user is writing a design proposal or RFC for a non-trivial change"
+        }
+      ],
+      "applies_when": "The user is proposing a design that warrants an Atlas RFC.",
+      "not_when": "The change is small enough to ship without an RFC.",
+      "recipe": "Run `atlas rfc new <slug>` to open the templated doc, then fill each section from the change at hand. Keep the Options and Rollback sections — review checks for them.",
+      "shipped": "2024-09",
+      "introduced_day": 3,
+      "popularity": 0.5,
+      "strong_teams": [
+        "platform"
+      ],
+      "roles": [
+        "senior-engineer",
+        "staff-engineer"
+      ],
+      "adoption_rate": 0.58,
+      "helped_rate": 0.75
+    },
+    {
+      "id": "pull-sentinel-runbook-in-incident",
+      "name": "Pull the Sentinel runbook into context during an incident",
+      "description": "Under incident pressure people improvise steps that a runbook already documents. Loading the Sentinel runbook keeps mitigation on the vetted path.",
+      "scope": "org",
+      "tags": [
+        "incident",
+        "runbook",
+        "sre",
+        "reliability"
+      ],
+      "task_types": [
+        "incident-response",
+        "debugging"
+      ],
+      "triggers": [
+        {
+          "heuristic": "an active incident or alert is being worked"
+        }
+      ],
+      "applies_when": "The user is mitigating an active incident that has a Sentinel runbook.",
+      "not_when": "There is no incident, or the service has no runbook yet.",
+      "recipe": "Run `sentinel runbook <service>` and follow the documented mitigation and rollback steps. Paste the alert into the session so the agent maps it to the right runbook section.",
+      "before_after": "Before: an improvised rollback that made the blast radius worse. After: the runbook's documented drain-then-rollback sequence.",
+      "shipped": "2025-03",
+      "introduced_day": 1,
+      "popularity": 0.55,
+      "strong_teams": [
+        "sre",
+        "security",
+        "platform"
+      ],
+      "weak_teams": [
+        "mobile",
+        "growth"
+      ],
+      "adoption_rate": 0.7,
+      "helped_rate": 0.85
+    },
+    {
+      "id": "ground-answers-in-nexus",
+      "name": "Ground the answer in Nexus internal docs",
+      "description": "A model's generic answer misses Meridian's own conventions. Retrieving from Nexus (the internal-docs RAG) grounds the answer in how we actually do it here.",
+      "scope": "org",
+      "tags": [
+        "rag",
+        "docs",
+        "internal-knowledge",
+        "knowledge"
+      ],
+      "task_types": [
+        "research",
+        "concept-explanation"
+      ],
+      "triggers": [
+        {
+          "heuristic": "user asks how something works at the company, not in general"
+        }
+      ],
+      "applies_when": "The question is about a Meridian-specific convention, process, or system.",
+      "not_when": "The question is about a public technology with no internal specifics.",
+      "recipe": "Query Nexus with `nexus ask \"<question>\"` (or attach the returned doc IDs) and answer from the retrieved internal docs, citing them, rather than from general knowledge.",
+      "shipped": "2025-04",
+      "introduced_day": 0,
+      "popularity": 0.85,
+      "strong_teams": [
+        "platform",
+        "payments",
+        "data-platform",
+        "devex"
+      ],
+      "adoption_rate": 0.64,
+      "helped_rate": 0.78
+    },
+    {
+      "id": "generate-forge-pipeline",
+      "name": "Generate a Forge pipeline from the golden config",
+      "description": "Copy-pasted CI drifts from the current Forge schema and fails opaquely. Generating from the golden config gets caching, required checks and deploy gates right.",
+      "scope": "org",
+      "tags": [
+        "ci",
+        "pipeline",
+        "forge",
+        "delivery"
+      ],
+      "task_types": [
+        "editing",
+        "migration"
+      ],
+      "applies_when": "The user is adding or fixing a Forge CI pipeline for a service.",
+      "not_when": "The CI system in question is not Forge.",
+      "recipe": "Run `forge init --from golden` to emit a current pipeline, then adapt the build/test/deploy stages. Validate with `forge lint` before pushing.",
+      "shipped": "2025-01",
+      "introduced_day": 5,
+      "popularity": 0.45,
+      "strong_teams": [
+        "platform",
+        "devex"
+      ],
+      "weak_teams": [
+        "mobile"
+      ],
+      "adoption_rate": 0.56,
+      "helped_rate": 0.74
+    },
+    {
+      "id": "explain-ledger-billing-edge-cases",
+      "name": "Reason about billing with the Ledger glossary",
+      "description": "Billing terms (proration, entitlement, dunning) mean specific things in Ledger. Loading the glossary keeps the agent from applying textbook definitions that don't match our model.",
+      "scope": "org",
+      "tags": [
+        "billing",
+        "domain",
+        "ledger"
+      ],
+      "task_types": [
+        "concept-explanation",
+        "debugging"
+      ],
+      "applies_when": "The task touches billing, invoicing, or entitlements in the Ledger service.",
+      "not_when": "The work is unrelated to billing.",
+      "recipe": "Attach the Ledger domain glossary (`nexus ask \"ledger glossary <term>\"`) and reason with Meridian's definitions of proration, entitlement and dunning, not generic ones.",
+      "shipped": "2025-05",
+      "introduced_day": 4,
+      "popularity": 0.4,
+      "strong_teams": [
+        "payments"
+      ],
+      "weak_teams": [
+        "mobile",
+        "growth"
+      ],
+      "adoption_rate": 0.6,
+      "helped_rate": 0.8
+    },
+    {
+      "id": "build-ui-from-compass",
+      "name": "Build UI from Compass primitives, not raw markup",
+      "description": "Hand-rolled markup ignores Compass tokens and accessibility rules and fails design review. Composing from Compass primitives ships consistent, accessible UI.",
+      "scope": "org",
+      "tags": [
+        "design-system",
+        "frontend",
+        "ui"
+      ],
+      "task_types": [
+        "editing"
+      ],
+      "triggers": [
+        {
+          "heuristic": "user is writing UI markup or styling by hand"
+        }
+      ],
+      "applies_when": "The user is building UI in a surface that uses the Compass design system.",
+      "not_when": "The surface predates Compass or is a throwaway prototype.",
+      "recipe": "Compose from Compass components (`<Compass.Button>`, `<Compass.Field>`, tokens) rather than raw HTML/CSS. Import from `@meridian/compass` and use the documented props.",
+      "shipped": "2024-12",
+      "introduced_day": 2,
+      "popularity": 0.5,
+      "strong_teams": [
+        "growth",
+        "mobile"
+      ],
+      "weak_teams": [
+        "platform",
+        "data-platform",
+        "sre"
+      ],
+      "adoption_rate": 0.58,
+      "helped_rate": 0.72
+    },
+    {
+      "id": "instrument-slo-with-pulse",
+      "name": "Add Pulse SLO instrumentation to a new service",
+      "description": "A service that ships without SLOs is invisible until it pages someone. Wiring Pulse SLOs at build time means it's observable on day one.",
+      "scope": "org",
+      "tags": [
+        "observability",
+        "slo",
+        "pulse",
+        "reliability"
+      ],
+      "task_types": [
+        "editing",
+        "architecture"
+      ],
+      "applies_when": "The user is adding or reviewing a service that lacks SLO instrumentation.",
+      "not_when": "The service already has Pulse SLOs defined.",
+      "recipe": "Add a `pulse.slo.yaml` from the template and instrument the golden signals with the Pulse SDK. Run `pulse validate` to confirm the SLOs register.",
+      "shipped": "2025-03",
+      "introduced_day": 6,
+      "popularity": 0.45,
+      "strong_teams": [
+        "sre",
+        "platform"
+      ],
+      "weak_teams": [
+        "growth",
+        "mobile"
+      ],
+      "adoption_rate": 0.55,
+      "helped_rate": 0.76
+    },
+    {
+      "id": "write-helios-migration",
+      "name": "Write a warehouse migration the Helios way",
+      "description": "Ad-hoc DDL against the warehouse skips Helios's backfill and reversibility guarantees. Generating a Helios migration makes the change safe to roll forward and back.",
+      "scope": "org",
+      "tags": [
+        "migration",
+        "database",
+        "warehouse",
+        "data-platform"
+      ],
+      "task_types": [
+        "migration",
+        "editing"
+      ],
+      "applies_when": "The user is changing warehouse schema managed by Helios.",
+      "not_when": "The schema is outside Helios's control.",
+      "recipe": "Run `helios migration new <name>`, write the forward and reverse steps, and include a backfill plan. Never hand-run DDL against the warehouse.",
+      "before_after": "Before: a manual ALTER that couldn't be rolled back. After: a reversible Helios migration with a backfill step.",
+      "shipped": "2025-02",
+      "introduced_day": 3,
+      "popularity": 0.5,
+      "strong_teams": [
+        "data-platform",
+        "payments"
+      ],
+      "weak_teams": [
+        "mobile",
+        "growth"
+      ],
+      "adoption_rate": 0.6,
+      "helped_rate": 0.8
+    },
+    {
+      "id": "run-threat-model-checklist",
+      "name": "Run the internal threat-model checklist on a change",
+      "description": "Security-relevant changes slip through without a structured review. The internal threat-model checklist surfaces authz, data-handling and secrets issues before merge.",
+      "scope": "org",
+      "tags": [
+        "security",
+        "threat-model",
+        "code-review",
+        "architecture"
+      ],
+      "task_types": [
+        "code-review",
+        "security"
+      ],
+      "applies_when": "The change touches auth, secrets, PII, or a trust boundary.",
+      "not_when": "The change has no security surface.",
+      "recipe": "Pull the checklist with `sentinel threat-model` and walk the change against each item (authz, input validation, secret handling, data classification). Record the answers in the PR.",
+      "shipped": "2025-04",
+      "introduced_day": 8,
+      "popularity": 0.35,
+      "strong_teams": [
+        "security"
+      ],
+      "weak_teams": [
+        "mobile",
+        "growth"
+      ],
+      "adoption_rate": 0.5,
+      "helped_rate": 0.82
+    },
+    {
+      "id": "trace-deps-with-atlas-map",
+      "name": "Trace service dependencies with the Atlas service map",
+      "description": "Guessing what calls a service leads to missed blast radius. The Atlas service map shows the real upstream and downstream dependencies.",
+      "scope": "org",
+      "tags": [
+        "service-catalog",
+        "dependencies",
+        "onboarding",
+        "architecture"
+      ],
+      "task_types": [
+        "research",
+        "architecture"
+      ],
+      "applies_when": "The user needs to know what depends on a service before changing it.",
+      "not_when": "The dependency graph is already known and small.",
+      "recipe": "Run `atlas deps <service>` (or open its Atlas page) to list upstreams and downstreams before making a breaking change, and check owners for each.",
+      "shipped": "2024-10",
+      "introduced_day": 1,
+      "popularity": 0.55,
+      "strong_teams": [
+        "platform",
+        "payments",
+        "data-platform"
+      ],
+      "adoption_rate": 0.6,
+      "helped_rate": 0.74
+    },
+    {
+      "id": "find-latency-with-pulse-traces",
+      "name": "Find latency with Pulse distributed traces",
+      "description": "Latency debugging by reading code guesses at the hot path. A Pulse trace shows exactly which span dominates the request.",
+      "scope": "org",
+      "tags": [
+        "observability",
+        "performance",
+        "tracing",
+        "reliability"
+      ],
+      "task_types": [
+        "debugging",
+        "performance"
+      ],
+      "triggers": [
+        {
+          "heuristic": "user is investigating a slow request or endpoint"
+        }
+      ],
+      "applies_when": "The user is debugging latency in a Pulse-instrumented service.",
+      "not_when": "The service isn't instrumented, or the problem isn't latency.",
+      "recipe": "Pull a representative trace with `pulse trace <request-id>` and find the dominant span before touching code. Optimize the span that actually owns the time.",
+      "shipped": "2025-03",
+      "introduced_day": 7,
+      "popularity": 0.45,
+      "strong_teams": [
+        "platform",
+        "payments",
+        "sre"
+      ],
+      "weak_teams": [
+        "growth"
+      ],
+      "adoption_rate": 0.57,
+      "helped_rate": 0.78
+    },
+    {
+      "id": "estimate-warehouse-query-cost",
+      "name": "Estimate warehouse query cost before running it",
+      "description": "A careless warehouse query can scan terabytes and cost real money. Estimating first catches the expensive full-scan before it runs.",
+      "scope": "org",
+      "tags": [
+        "warehouse",
+        "cost",
+        "performance",
+        "data-platform"
+      ],
+      "task_types": [
+        "data-extraction",
+        "performance"
+      ],
+      "applies_when": "The user is about to run a large or unbounded warehouse query.",
+      "not_when": "The query is small and bounded.",
+      "recipe": "Run `mq explain --cost \"<query>\"` first; if it scans more than a few GB, add partitions/filters before running it for real.",
+      "shipped": "2025-05",
+      "introduced_day": 10,
+      "popularity": 0.35,
+      "strong_teams": [
+        "data-platform"
+      ],
+      "weak_teams": [
+        "mobile",
+        "growth"
+      ],
+      "adoption_rate": 0.55,
+      "helped_rate": 0.75
+    },
+    {
+      "id": "convert-legacy-config-to-beacon",
+      "name": "Migrate legacy YAML config to Beacon",
+      "description": "Hand-editing legacy YAML config keeps drift alive. Converting it to Beacon-managed flags makes the config auditable and safe to change at runtime.",
+      "scope": "org",
+      "tags": [
+        "config",
+        "migration",
+        "beacon",
+        "delivery"
+      ],
+      "task_types": [
+        "migration"
+      ],
+      "applies_when": "The user is touching a service still on legacy YAML config.",
+      "not_when": "The config already lives in Beacon.",
+      "recipe": "Run `beacon import <path/to/config.yaml>` to stage the flags, review the mapping, then delete the YAML and read via the Beacon SDK.",
+      "shipped": "2025-04",
+      "introduced_day": 6,
+      "popularity": 0.3,
+      "strong_teams": [
+        "platform"
+      ],
+      "weak_teams": [
+        "mobile",
+        "growth"
+      ],
+      "adoption_rate": 0.58,
+      "helped_rate": 0.7
+    },
+    {
+      "id": "write-customer-postmortem",
+      "name": "Draft a customer postmortem from the Sentinel timeline",
+      "description": "A postmortem written from memory misses steps and timings. Building it from the Sentinel incident timeline produces an accurate, customer-ready writeup.",
+      "scope": "org",
+      "tags": [
+        "incident",
+        "postmortem",
+        "writing",
+        "reliability"
+      ],
+      "task_types": [
+        "incident-response",
+        "summarization"
+      ],
+      "applies_when": "The user is writing a postmortem for a resolved incident that has a Sentinel timeline.",
+      "not_when": "There is no recorded incident timeline.",
+      "recipe": "Export the timeline with `sentinel timeline <incident-id>` and draft the postmortem into the customer template: impact, timeline, root cause, and follow-ups tied to the recorded events.",
+      "shipped": "2025-06",
+      "introduced_day": 12,
+      "popularity": 0.3,
+      "strong_teams": [
+        "sre",
+        "security"
+      ],
+      "weak_teams": [
+        "mobile"
+      ],
+      "roles": [
+        "senior-engineer",
+        "staff-engineer",
+        "em"
+      ],
+      "adoption_rate": 0.55,
+      "helped_rate": 0.8
+    },
+    {
+      "id": "mobile-release-checklist",
+      "name": "Run the mobile release runbook",
+      "description": "Mobile releases have store-specific steps that are easy to skip. The internal release runbook keeps staged rollout, changelog and rollback in order.",
+      "scope": "org",
+      "tags": [
+        "mobile",
+        "release",
+        "runbook",
+        "frontend"
+      ],
+      "task_types": [
+        "planning",
+        "testing"
+      ],
+      "applies_when": "The user is cutting a mobile app release.",
+      "not_when": "The change isn't a mobile release.",
+      "recipe": "Open `atlas runbook mobile-release` and walk the staged-rollout, changelog, and rollback steps. Confirm the phased-rollout percentage before submitting to the stores.",
+      "shipped": "2025-01",
+      "introduced_day": 4,
+      "popularity": 0.35,
+      "strong_teams": [
+        "mobile"
+      ],
+      "weak_teams": [
+        "platform",
+        "data-platform",
+        "sre"
+      ],
+      "adoption_rate": 0.62,
+      "helped_rate": 0.76
+    },
+    {
+      "id": "codeowners-context-for-pr",
+      "name": "Find the right reviewers from Atlas CODEOWNERS",
+      "description": "Tagging the wrong reviewers stalls a PR. Atlas resolves the owning team and the humans who actually review that path.",
+      "scope": "org",
+      "tags": [
+        "code-review",
+        "ownership",
+        "atlas",
+        "architecture"
+      ],
+      "task_types": [
+        "code-review"
+      ],
+      "applies_when": "The user is opening a PR and needs the correct reviewers.",
+      "not_when": "The reviewers are already known and correct.",
+      "recipe": "Run `atlas owners <path>` to resolve the owning team and suggested reviewers for the files you changed, and request those rather than guessing.",
+      "shipped": "2025-02",
+      "introduced_day": 9,
+      "popularity": 0.5,
+      "strong_teams": [
+        "platform",
+        "payments",
+        "growth"
+      ],
+      "adoption_rate": 0.6,
+      "helped_rate": 0.68
+    },
+    {
+      "id": "reproduce-with-warehouse-snapshot",
+      "name": "Reproduce a data bug with a warehouse snapshot",
+      "description": "Debugging a data bug against live tables is nondeterministic. A pinned warehouse snapshot makes the repro stable and shareable.",
+      "scope": "org",
+      "tags": [
+        "debugging",
+        "warehouse",
+        "repro",
+        "data-platform"
+      ],
+      "task_types": [
+        "debugging"
+      ],
+      "applies_when": "The user is chasing a data discrepancy that's hard to reproduce against live data.",
+      "not_when": "The bug isn't data-dependent.",
+      "recipe": "Pin a snapshot with `mq snapshot <table> --as-of <ts>` and reproduce against it, so the failing rows stay fixed while you debug.",
+      "shipped": "2025-05",
+      "introduced_day": 11,
+      "popularity": 0.35,
+      "strong_teams": [
+        "data-platform",
+        "payments"
+      ],
+      "adoption_rate": 0.56,
+      "helped_rate": 0.78
+    },
+    {
+      "id": "summarize-nexus-adr",
+      "name": "Summarize an ADR from Nexus before a design review",
+      "description": "Walking into a design review without the prior decisions repeats settled debates. A Nexus ADR summary brings the context in fast.",
+      "scope": "org",
+      "tags": [
+        "adr",
+        "docs",
+        "research",
+        "knowledge"
+      ],
+      "task_types": [
+        "research",
+        "summarization"
+      ],
+      "applies_when": "The user is preparing for a design review of an area with existing ADRs.",
+      "not_when": "There are no relevant ADRs.",
+      "recipe": "Ask Nexus for the area's ADRs (`nexus ask \"ADRs for <area>\"`) and summarize the decisions and their rationale before the review, so you don't reopen settled ones.",
+      "shipped": "2025-06",
+      "introduced_day": 14,
+      "popularity": 0.3,
+      "strong_teams": [
+        "platform"
+      ],
+      "roles": [
+        "senior-engineer",
+        "staff-engineer"
+      ],
+      "adoption_rate": 0.55,
+      "helped_rate": 0.74
+    },
+    {
+      "id": "use-legacy-deploy-script",
+      "name": "Ship a hotfix with the legacy deploy.sh",
+      "description": "For urgent hotfixes people reach for the old deploy.sh because it's familiar. It skips the Forge migration and canary gates, so it often trades a fast push now for a follow-on incident later — which is why its helped rate stays stubbornly low.",
+      "scope": "org",
+      "tags": [
+        "deploy",
+        "legacy",
+        "delivery"
+      ],
+      "task_types": [
+        "editing"
+      ],
+      "applies_when": "The user wants to push an urgent change and reaches for the legacy deploy path.",
+      "not_when": "A normal Forge deploy is available and there's no time pressure.",
+      "recipe": "Run `./deploy.sh <service> <env>` to push directly. (Prefer `forge deploy` — it runs the migration and canary gates the script skips.)",
+      "before_after": "Before: a fast direct push. After: a skipped migration gate that caused a follow-on incident.",
+      "shipped": "2024-08",
+      "introduced_day": 0,
+      "popularity": 0.5,
+      "strong_teams": [
+        "platform",
+        "sre"
+      ],
+      "adoption_rate": 0.55,
+      "helped_rate": 0.38
+    },
+    {
+      "id": "prove-the-test-fails-first",
+      "name": "Prove a new test fails without the fix",
+      "description": "A green suite can be green for the wrong reason. Before trusting a new test, make it fail on purpose so you know it actually guards the behaviour.",
+      "scope": "general",
+      "tags": [
+        "testing",
+        "verification"
+      ],
+      "task_types": [
+        "testing"
+      ],
+      "applies_when": "The user just added a test alongside a fix.",
+      "not_when": "The test was already shown to fail without the fix.",
+      "recipe": "Revert the fix in place, run the new test, and confirm it fails with a message that names the real defect. Restore the fix and confirm it passes.",
+      "shipped": "2024-06",
+      "introduced_day": 0,
+      "popularity": 0.55,
+      "adoption_rate": 0.6,
+      "helped_rate": 0.82
+    },
+    {
+      "id": "get-a-plan-before-large-edits",
+      "name": "Get a written plan before a large multi-file edit",
+      "description": "Diving straight into a big change produces sprawling diffs that are hard to review. A short plan first keeps the change scoped and reviewable.",
+      "scope": "general",
+      "tags": [
+        "planning",
+        "prompting"
+      ],
+      "task_types": [
+        "planning",
+        "editing"
+      ],
+      "applies_when": "The user is about to make a change spanning many files or systems.",
+      "not_when": "The change is small and local.",
+      "recipe": "Ask for a short step-by-step plan (files to touch, order, risks) and approve it before any edits. Keep the plan in the session as the checklist.",
+      "shipped": "2024-07",
+      "introduced_day": 0,
+      "popularity": 0.5,
+      "adoption_rate": 0.58,
+      "helped_rate": 0.78
+    },
+    {
+      "id": "paste-the-full-stack-trace",
+      "name": "Paste the full stack trace, not your paraphrase",
+      "description": "A paraphrased error drops the frames and values that locate the bug. The full trace lets the agent read the actual failure.",
+      "scope": "general",
+      "tags": [
+        "debugging",
+        "context"
+      ],
+      "task_types": [
+        "debugging"
+      ],
+      "triggers": [
+        {
+          "heuristic": "user describes an error in prose instead of pasting it"
+        }
+      ],
+      "applies_when": "The user is debugging a failure they've described rather than pasted.",
+      "not_when": "The full error is already in the session.",
+      "recipe": "Paste the complete stack trace and the command that produced it, unabridged, before asking for a diagnosis.",
+      "shipped": "2024-05",
+      "introduced_day": 0,
+      "popularity": 0.5,
+      "adoption_rate": 0.6,
+      "helped_rate": 0.76
+    },
+    {
+      "id": "capture-oncall-tribal-knowledge",
+      "name": "Capture on-call tribal knowledge as a runbook",
+      "description": "The fix an on-call engineer just worked out lives only in their head and Slack. Capturing it as a Sentinel runbook makes it reusable next time.",
+      "scope": "org",
+      "tags": [
+        "incident",
+        "runbook",
+        "knowledge",
+        "reliability"
+      ],
+      "task_types": [
+        "incident-response",
+        "summarization"
+      ],
+      "applies_when": "An on-call engineer just resolved something that isn't documented.",
+      "not_when": "A runbook already covers the situation.",
+      "recipe": "After mitigating, run `sentinel runbook new <service>` and write up the symptom, the check, and the fix you just used, so the next on-call finds it.",
+      "shipped": "2026-07",
+      "introduced_day": 20,
+      "popularity": 0.25,
+      "strong_teams": [
+        "sre"
+      ],
+      "adoption_rate": 0.5,
+      "helped_rate": 0.78,
+      "draft": true
+    },
+    {
+      "id": "generate-terraform-from-atlas",
+      "name": "Generate Terraform for a service from its Atlas spec",
+      "description": "Hand-writing infra for a new service drifts from the standards Atlas already knows. Generating Terraform from the Atlas spec keeps tags, networking and IAM to policy.",
+      "scope": "org",
+      "tags": [
+        "infrastructure",
+        "terraform",
+        "atlas",
+        "architecture"
+      ],
+      "task_types": [
+        "editing",
+        "architecture"
+      ],
+      "applies_when": "The user is provisioning infra for a service that has an Atlas spec.",
+      "not_when": "The infra already exists and is compliant.",
+      "recipe": "Run `atlas infra gen <service>` to emit Terraform from the service's Atlas spec, then review the IAM and networking blocks against policy before applying.",
+      "shipped": "2026-07",
+      "introduced_day": 22,
+      "popularity": 0.25,
+      "strong_teams": [
+        "platform",
+        "sre"
+      ],
+      "adoption_rate": 0.5,
+      "helped_rate": 0.75,
+      "draft": true
+    }
+  ]
+}

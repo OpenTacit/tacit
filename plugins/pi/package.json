@@ -1,0 +1,18 @@
+{
+  "name": "tacit-pi",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Connect pi to the organization's Tacit playbook and record aggregate outcomes.",
+  "keywords": ["pi-package"],
+  "scripts": {
+    "test": "node --test"
+  },
+  "pi": {
+    "extensions": ["./extensions"],
+    "skills": ["./skills"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tacit.zone/schemas/evidence-block.schema.json",
+  "title": "Evidence block",
+  "description": "The COLLECTIVE EVIDENCE contract returned by POST /v1/evidence (tacit/pkg/contracts.EvidenceBlock).",
+  "type": "object",
+  "required": ["candidates", "cohort", "meta"],
+  "properties": {
+    "candidates": {"type": "array", "items": {"$ref": "#/$defs/candidate"}},
+    "shadow_candidates": {"type": "array", "items": {"$ref": "#/$defs/candidate"}, "description": "Techniques under evaluation (status=shadow): matched this context but never surfaced. Optional; consumers that don't understand it ignore it."},
+    "cohort": {
+      "type": "object",
+      "required": ["segment", "uses", "common_total"],
+      "properties": {
+        "segment": {"type": "string"},
+        "uses": {"type": "integer", "minimum": 0},
+        "common_total": {"type": "integer", "minimum": 0},
+        "examples": {"type": ["array", "null"], "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "meta": {
+      "type": "object",
+      "required": ["thin"],
+      "properties": {"thin": {"type": "boolean"}},
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "required": ["technique_id", "name", "scope", "recipe", "outcomes", "freshness"],
+      "properties": {
+        "technique_id": {"type": "string"},
+        "name": {"type": "string"},
+        "scope": {"type": "string"},
+        "recipe": {"type": "string"},
+        "applies_when": {"type": "string"},
+        "not_when": {"type": "string"},
+        "support": {"type": "string"},
+        "outcomes": {
+          "type": ["object", "null"],
+          "required": ["helped_rate", "adoption_rate", "sample_size", "segment"],
+          "properties": {
+            "helped_rate": {"type": ["number", "null"]},
+            "adoption_rate": {"type": ["number", "null"]},
+            "sample_size": {"type": "integer", "minimum": 0},
+            "segment": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        "freshness": {
+          "type": "object",
+          "required": ["recently_shipped"],
+          "properties": {
+            "shipped": {"type": "string"},
+            "recently_shipped": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "autonomy_eligible": {"type": "boolean"},
+        "similarity": {"type": "number"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,8 @@
+The OpenTacit Authors <team@opentacit.com>
+
+One maintainer, reachable at the address above. See GOVERNANCE.md for what that
+means in practice and CONTRIBUTING.md for how to send a change.
+
+The role alias rather than a personal address is deliberate: it is the contact
+in NOTICE, TRADEMARK.md, SECURITY.md and CODE_OF_CONDUCT.md too, so there is one
+place to write to and it keeps working if the person behind it changes.
