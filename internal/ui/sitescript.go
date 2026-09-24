@@ -30,47 +30,6 @@ func SiteSignOutHotkey(signOutHref string) string {
 		template.JSEscapeString(signOutHref) + `';});</script>`
 }
 
-const siteHighlightScript = `<script>(function(){
-var queued=false,selector='[data-highlight-orange],[data-highlight-green]';
-if(!document.createRange||!document.createTreeWalker)return;
-var textRange=function(el,phrase){
- var walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),nodes=[],all='',node;
- while((node=walker.nextNode())){nodes.push({node:node,start:all.length});all+=node.data;}
- phrase=phrase||all;var start=all.indexOf(phrase),end=start+phrase.length;
- if(start<0||!phrase)return null;
- var first=null,last=null,firstOffset=0,lastOffset=0;
- nodes.forEach(function(part){
-  var partEnd=part.start+part.node.data.length;
-  if(!first&&start>=part.start&&start<=partEnd){first=part.node;firstOffset=start-part.start;}
-  if(end>=part.start&&end<=partEnd){last=part.node;lastOffset=end-part.start;}
- });
- if(!first||!last)return null;
- var range=document.createRange();range.setStart(first,firstOffset);range.setEnd(last,lastOffset);
- return range;
-};
-var paint=function(){
- document.querySelectorAll('.site-highlight-stroke').forEach(function(n){n.remove();});
- document.querySelectorAll(selector).forEach(function(el){
-  el.classList.add('site-highlight-host');var box=el.getBoundingClientRect();
-  [['orange','site-orange'],['green','site-green']].forEach(function(pair){
-   if(!el.hasAttribute('data-highlight-'+pair[0]))return;
-   var range=textRange(el,el.getAttribute('data-highlight-'+pair[0]));
-   if(!range)return;
-   Array.prototype.forEach.call(range.getClientRects(),function(rect){
-    var stroke=document.createElement('i');
-    stroke.className='site-highlight-stroke '+pair[1];stroke.setAttribute('aria-hidden','true');
-    stroke.style.left=(rect.left-box.left)+'px';stroke.style.top=(rect.top-box.top+rect.height*.13)+'px';
-    stroke.style.width=rect.width+'px';stroke.style.height=(rect.height*.76)+'px';
-    el.appendChild(stroke);
-   });
-  });
- });
-};
-var queue=function(){if(queued)return;queued=true;requestAnimationFrame(function(){queued=false;paint();});};
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(queue);else queue();
-addEventListener('resize',queue,{passive:true});
-})();</script>`
-
 // siteScript is the page's only JavaScript, and everything it does is optional.
 // It stops the marquee when the reader has asked for less motion, and on a screen wide
 // enough for two columns it turns the user-flow section into a scroll stage.

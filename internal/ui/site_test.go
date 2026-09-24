@@ -8,6 +8,7 @@ import (
 	"html"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -151,8 +152,7 @@ func TestHeroInstallCommandIsCopiedVerbatim(t *testing.T) {
 	// `Contains(page, data-copy=cmd)` and went on passing after the hero's button
 	// became an info glyph — the guide's own copy control matched it, so a test
 	// named for the hero was checking a different window.
-	hero := between(t, page, `<div class="site-install"`, `</div>
-  <p class="site-note"`)
+	hero := between(t, page, `<div class="site-install"`, `<p class="site-note"`)
 	if strings.Contains(hero, "data-copy=") {
 		t.Error("the hero window still carries a copy control; it is one click target now")
 	}
@@ -401,13 +401,7 @@ func TestHeadlineIsTheSameOnThePageAndInTheTab(t *testing.T) {
 	if strings.Contains(page, "&amp;nbsp;") || strings.Contains(page, "&nbsp;") {
 		t.Error("the headline renders a non-breaking-space entity as text")
 	}
-	for _, phrase := range []string{siteHeadlineWhat, siteHeadlineHow} {
-		if !strings.Contains(page, phrase) {
-			t.Errorf("the page does not contain the unbroken headline phrase %q", phrase)
-		}
-	}
-	start := `data-highlight-green="` + siteHeadlineHow + `">`
-	if h1 := between(t, page, start, "</h1>"); h1 != html.EscapeString(SiteHeadline) {
+	if h1 := between(t, page, `<h1 class="site-title">`, "</h1>"); h1 != html.EscapeString(SiteHeadline) {
 		t.Errorf("the <h1> is %q, not SiteHeadline", h1)
 	}
 	title := between(t, page, "<title>", "</title>")
@@ -420,18 +414,29 @@ func TestHeadlineIsTheSameOnThePageAndInTheTab(t *testing.T) {
 	}
 }
 
-func TestSiteHighlightsAreNotBoundToTheHeadline(t *testing.T) {
-	for _, want := range []string{
-		`[data-highlight-orange],[data-highlight-green]`,
-		`document.createTreeWalker`,
-		`phrase=phrase||all`,
+// The headline wears no colour, and neither does anything else in the chrome.
+//
+// It used to carry two marker strokes, painted by a script that measured the
+// phrases and laid <i> elements behind them. That was the loudest thing on the
+// first screen, and the house rules ration the spectrum to the data. Removing the
+// attributes alone would have left the script, the stylesheet rules and the ~2KB
+// it costs every reader in place, waiting to be reattached by somebody who did
+// not know why they went; this is the assertion that says all of it left.
+func TestTheHeadlineWearsNoMarkerStroke(t *testing.T) {
+	page := SiteHTML("")
+	for _, gone := range []string{
+		"data-highlight-orange", "data-highlight-green",
+		"site-highlight-host", "site-highlight-stroke",
 	} {
-		if !strings.Contains(siteHighlightScript, want) {
-			t.Errorf("the generic landing-page highlight script lost %q", want)
+		if strings.Contains(page, gone) {
+			t.Errorf("the page still carries %q — the headline's marker strokes are back", gone)
+		}
+		if strings.Contains(cssRaw, "."+gone) {
+			t.Errorf("app.css still defines .%s, which nothing uses", gone)
 		}
 	}
-	if strings.Contains(siteHighlightScript, `querySelector('.site-title')`) {
-		t.Error("the landing-page highlight script is still bound to the headline")
+	if strings.Contains(page, "createTreeWalker") {
+		t.Error("the highlight script is still on the page")
 	}
 }
 
@@ -511,21 +516,107 @@ func TestSiteFlowTellsOneStoryTwice(t *testing.T) {
 // the frames, and the page states no rate anywhere in its own voice — not in a
 // caption, not in a panel, not in the close.
 func TestSiteStatesNoRateInItsOwnVoice(t *testing.T) {
+	page := SiteHTML("")
 	// The flow section sits outside <main>, so it is scanned separately; its
 	// caption has to name the staging rather than quote the figures.
-	flow := between(t, SiteHTML(""), `<section class="site-flow"`, "</section>")
+	flow := between(t, page, `<section class="site-flow"`, "</section>")
 	for _, sc := range siteFlowScenarios {
 		for _, st := range sc.Steps {
 			flow = strings.Replace(flow, termMomentHTML(st.Frame, st.Alt), "", 1)
 		}
 	}
-	rest := visibleProse(t, SiteHTML("")) + flow
+	// So does the hero, and it now holds the offer too — as a form rather than as
+	// a frame. It was the one region of this page nothing scanned, on the
+	// reasonable grounds that it held no figures; the moment a percentage moved
+	// into the first screen that stopped being true, and a rate in a hero is the
+	// worst place on the page for one.
+	//
+	// What is exempt is named rather than cut out by markup: the three strings the
+	// suggestion is made of. Anything else in that header quoting a rate is the
+	// page speaking, which is what this forbids.
+	hero := between(t, page, `<header class="site-stage">`, "</header>")
+	for _, quoted := range []string{offerName, offerEvidence, offerFit} {
+		hero = strings.Replace(hero, html.EscapeString(quoted), "", 1)
+	}
+	rest := visibleProse(t, page) + flow + hero
 	if pct := regexp.MustCompile(`\b\d+(\.\d+)?%`).FindAllString(rest, -1); len(pct) > 0 {
 		t.Errorf("the page states rates of its own (%v) — nothing here is measured", pct)
 	}
+	// The flow section names its own staging. The hero does NOT, and that is a
+	// decision rather than an oversight: its caption was taken out deliberately,
+	// so the first screen shows a measured evidence line inside a depiction of a
+	// client with nothing next to it saying whose figures they are. The page's
+	// only such statement is the one below, and a reader who leaves from the
+	// first screen never reaches it. hack/sitestills/README.md still records the
+	// older rule — "the page caption identifies them as staged" — so if this ever
+	// reads as the page's own claim, a caption here is the fix.
 	if !strings.Contains(flow, "example") && !strings.Contains(flow, "staged") {
-		t.Error("the flow caption no longer says its session was staged — the frames' " +
-			"figures would read as measured results")
+		t.Error("the flow caption no longer says its session is an example — the " +
+			"frames' figures would read as measured results")
+	}
+}
+
+// The hero shows the dashboard's Outcomes view, in both schemes, and it is the
+// carousel's own file rather than a second copy of it.
+//
+// One picture twice is the arrangement: the claim at the top of the page, and the
+// same screen with its explanation beside it further down. Two files would be two
+// things to regenerate, and the one nobody regenerates is the one that shows a
+// stranger a dashboard the product no longer draws.
+func TestTheHeroBorrowsTheCarouselsOutcomesShot(t *testing.T) {
+	shot, dark, alt, w, h := siteHeroShot()
+	if shot == "" || dark == "" || alt == "" || w == 0 || h == 0 {
+		t.Fatalf("siteHeroViewKey %q resolves to nothing in siteSeeViews — the hero "+
+			"has no picture", siteHeroViewKey)
+	}
+	page := SiteHTML("")
+	region := between(t, page, `<div class="site-hero-shot">`, "</header>")
+	for _, want := range []string{
+		`<img class="theme-light" src="` + SiteShotURL(shot) + `"`,
+		`<img class="theme-dark" src="` + SiteShotURL(dark) + `"`,
+	} {
+		if !strings.Contains(region, want) {
+			t.Errorf("the hero does not carry %s", want)
+		}
+	}
+	// Both dimensions on both images, so the first screen reserves the space
+	// instead of reflowing the headline when the picture arrives.
+	size := `width="` + strconv.Itoa(w) + `" height="` + strconv.Itoa(h) + `"`
+	if n := strings.Count(region, size); n != 2 {
+		t.Errorf("%d of the hero's two images carry %s", n, size)
+	}
+	// Not lazy. Everything in the carousel below is; this one is above the fold,
+	// and a lazy image there is a hero that arrives after the reader has read it.
+	if strings.Contains(region, `loading="lazy"`) {
+		t.Error("the hero's image is lazy-loaded")
+	}
+	// Its description is the slide's, because it is the same picture.
+	if !strings.Contains(region, siteProduct(html.EscapeString(alt))) {
+		t.Error("the hero's images do not carry the view's own alt text")
+	}
+	// And the carousel still shows it, which is the half of "one picture twice"
+	// that this test would otherwise let go missing.
+	slide := between(t, page, `<li class="site-see-slide" data-see="`+siteHeroViewKey+`"`, "</li>")
+	if !strings.Contains(slide, SiteShotURL(shot)) {
+		t.Errorf("the %s slide no longer shows %s", siteHeroViewKey, shot)
+	}
+}
+
+// The hero is the dashboard and the session below it is a terminal.
+//
+// Both claims are load-bearing. A terminal in the hero says this is a CLI tool,
+// which is the thing the prose beside it spends two sentences denying; the
+// dashboard in the flow section would lose the one rendering that shows a
+// suggestion arriving inside somebody's work.
+func TestTheHeroShowsTheDashboardAndTheSessionTheTerminal(t *testing.T) {
+	page := SiteHTML("")
+	region := between(t, page, `<div class="site-hero-shot">`, "</header>")
+	if strings.Contains(region, `class="site-term`) {
+		t.Error("the hero is drawing a terminal again; the first screen shows the dashboard")
+	}
+	flow := between(t, page, `<section class="site-flow"`, "</section>")
+	if !strings.Contains(flow, `class="site-term-win"`) {
+		t.Error("the flow section is no longer a terminal")
 	}
 }
 

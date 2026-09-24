@@ -12,30 +12,62 @@ import (
 	"testing"
 )
 
-// The visibility section's screenshot is the user guide's, not a capture of its
-// own — that is the whole arrangement: regenerating the guide's screenshots is
-// the one workflow, and the front page rides along. A copy that drifts shows a
-// stranger a dashboard the product no longer draws, silently, because nothing
-// else reads both files.
-func TestSiteShotsAreTheGuidesOwnScreenshots(t *testing.T) {
+// Every embedded screenshot is the user guide's own file, and every one of them
+// is accounted for.
+//
+// That is the whole arrangement: regenerating the guide's screenshots is the one
+// workflow, and the front page rides along — the hero and the carousel both show
+// captures from it. A copy that drifts shows a stranger a dashboard the product
+// no longer draws, silently, because nothing else reads both files.
+//
+// The completeness half matters as much as the comparison. A file in here that
+// no view claims is a capture nobody is checking, and this page has already
+// carried one of those: a scrubbed screenshot of somebody's own desktop, which
+// was correct only for as long as the person who scrubbed it was looking.
+func TestEveryEmbeddedScreenshotIsTheGuidesOwn(t *testing.T) {
+	claimed := map[string]bool{}
+	for _, v := range siteSeeViews {
+		claimed[v.Shot], claimed[v.Dark] = true, true
+	}
+	heroShot, heroDark, _, _, _ := siteHeroShot()
+	if !claimed[heroShot] || !claimed[heroDark] {
+		t.Errorf("the hero's pair (%s, %s) is not one of the carousel's, so it is a "+
+			"second copy to keep current", heroShot, heroDark)
+	}
+
 	names, err := shotFS.ReadDir("assets/shots")
 	if err != nil || len(names) == 0 {
 		t.Fatalf("no embedded screenshots: %v", err)
 	}
+	seen := map[string]bool{}
 	for _, n := range names {
-		embedded, err := shotFS.ReadFile("assets/shots/" + n.Name())
-		if err != nil {
-			t.Fatalf("reading embedded %s: %v", n.Name(), err)
+		name := n.Name()
+		seen[name] = true
+		if !claimed[name] {
+			t.Errorf("embedded screenshot %s is shown by no view. Every capture in "+
+				"here has to be accounted for: one nothing displays is one nothing "+
+				"checks", name)
+			continue
 		}
-		source := filepath.Join("..", "..", "docs", "user-guide", "images", n.Name())
+		embedded, err := shotFS.ReadFile("assets/shots/" + name)
+		if err != nil {
+			t.Fatalf("reading embedded %s: %v", name, err)
+		}
+		source := filepath.Join("..", "..", "docs", "user-guide", "images", name)
 		disk, err := os.ReadFile(source)
 		if err != nil {
-			t.Fatalf("embedded screenshot %s has no source in the guide: %v", n.Name(), err)
+			t.Errorf("embedded screenshot %s has no source in the guide: %v", name, err)
+			continue
 		}
 		if !bytes.Equal(embedded, disk) {
 			t.Errorf("embedded %s differs from the guide's copy — after regenerating "+
 				"the guide's screenshots, run: cp docs/user-guide/images/%s "+
-				"internal/ui/assets/shots/", n.Name(), n.Name())
+				"internal/ui/assets/shots/", name, name)
+		}
+	}
+	for name := range claimed {
+		if !seen[name] {
+			t.Errorf("a view shows %s and it is not embedded", name)
 		}
 	}
 }

@@ -90,11 +90,47 @@ var siteNav = []struct{ Label, Href string }{
 // template twice they drift, and they did — an edit to the headline left the title
 // as "OpenTacit — " with nothing after the dash, which is invisible on the page
 // and is exactly what a browser tab, a bookmark and a shared link all show.
-const (
-	siteHeadlineWhat = "what\u00a0works\u00a0with\u00a0AI"
-	siteHeadlineHow  = "how\u00a0everyone\u00a0works"
-	SiteHeadline     = "Turn " + siteHeadlineWhat + " into " + siteHeadlineHow + ", automatically."
-)
+//
+// Three verbs and an object, because that is the product: it finds the techniques
+// that work, keeps them current, and passes them round. The line before it —
+// "Turn what works with AI into how everyone works" — named no object at all, and
+// would have fitted a wiki, a training platform or a handbook just as well.
+//
+// It carries no marker stroke either. The pair of them spent the page's whole
+// colour budget on the chrome, which is the one thing the house rules will not
+// have — and they spent it on the first screen, where a stranger meets the page.
+// What is loud in the hero now is the frame beside the words, and the frame is
+// loud through being a screen of somebody's terminal rather than through colour.
+// The highlight machinery went with the strokes: the script, the stylesheet rules
+// and the phrase constants that fed the data attributes.
+const SiteHeadline = "Find, maintain and share the best AI techniques across your organization."
+
+// The hero's picture is the dashboard's Outcomes view, and it is the SAME file
+// the carousel's "Measure technique outcomes" slide shows further down.
+//
+// Borrowed by key rather than copied: siteHeroShot reads it out of siteSeeViews,
+// so the first screen and that slide cannot come to show different pictures, and
+// the guide's own screenshot workflow refreshes both at once (assets.go). The
+// page therefore shows one image twice — as the claim at the top, and with its
+// explanation beside it below — which is the arrangement a poster and a caption
+// have always had.
+//
+// It replaced a capture of the Claude Code desktop app with a staged session
+// drawn over it. That picture had to imitate somebody else's interface to work,
+// and an imitation of a product this page does not own is a claim this page
+// cannot check. The dashboard is ours, so there is nothing to imitate.
+const siteHeroViewKey = "outcomes"
+
+// siteHeroShot is that view's pair, its size and its description. Empty strings
+// when the key does not resolve, which a test catches rather than a blank hero.
+func siteHeroShot() (shot, dark, alt string, w, h int) {
+	for _, v := range siteSeeViews {
+		if v.Key == siteHeroViewKey {
+			return v.Shot, v.Dark, v.Alt, v.W, v.H
+		}
+	}
+	return "", "", "", 0, 0
+}
 
 // The user-flow section: the sequence of one interaction, told as three
 // moments of Claude Code working against a registry loaded with a demonstration
