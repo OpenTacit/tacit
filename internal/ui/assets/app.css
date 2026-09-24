@@ -4075,16 +4075,26 @@ a.lg[href]:hover .lg-swatch{filter:brightness(1.12)}
   font-weight:700;letter-spacing:-.02em;color:var(--ink);margin:.4rem 0 1.7rem;line-height:1.05}
 .doc-masthead .mark{color:var(--accent);width:1.07em;height:1.07em;flex:none}
 .doc-masthead .wordmark{flex:none}
-.prose img.theme-dark,.site-see-shot img.theme-dark{display:none}
+/* The light/dark image pairs, and every surface that carries one has to be named
+   here: the rule is a selector list rather than a bare img.theme-* so a stray
+   class elsewhere cannot silently hide an image. The hero's app shot joined the
+   guide's prose and the project page's carousel, and until it was named here the
+   first screen showed BOTH variants stacked. */
+.prose img.theme-dark,.site-see-shot img.theme-dark,
+.site-hero-shot img.theme-dark{display:none}
 :root[data-theme="dark"] .prose img.theme-light,
-:root[data-theme="dark"] .site-see-shot img.theme-light{display:none}
+:root[data-theme="dark"] .site-see-shot img.theme-light,
+:root[data-theme="dark"] .site-hero-shot img.theme-light{display:none}
 :root[data-theme="dark"] .prose img.theme-dark,
-:root[data-theme="dark"] .site-see-shot img.theme-dark{display:block}
+:root[data-theme="dark"] .site-see-shot img.theme-dark,
+:root[data-theme="dark"] .site-hero-shot img.theme-dark{display:block}
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]) .prose img.theme-light,
-  :root:not([data-theme="light"]) .site-see-shot img.theme-light{display:none}
+  :root:not([data-theme="light"]) .site-see-shot img.theme-light,
+  :root:not([data-theme="light"]) .site-hero-shot img.theme-light{display:none}
   :root:not([data-theme="light"]) .prose img.theme-dark,
-  :root:not([data-theme="light"]) .site-see-shot img.theme-dark{display:block}
+  :root:not([data-theme="light"]) .site-see-shot img.theme-dark,
+  :root:not([data-theme="light"]) .site-hero-shot img.theme-dark{display:block}
 }
 /* The guide's hero is identity, not an illustration: centered, unframed, at
    three-quarters of its natural size, and without the zoom affordance (the
@@ -4377,37 +4387,100 @@ body.site::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:non
   -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;text-shadow:var(--site-metal-light)}
 .site-flow-head h2,.site-priv-head h2,.site-see-head h2{max-width:100%}
-/* The two parts of the claim carry a soft marker stroke. A text highlight paints
-   behind the glyphs without adding inline boxes, so the headline wraps as plain
-   text. The colours come from the terminal's window lights below. */
-.site-highlight-host{position:relative;isolation:isolate}
-.site-highlight-stroke{position:absolute;z-index:-1;display:block;pointer-events:none;
-  transform:rotate(-.35deg)}
-.site-highlight-stroke.site-orange{background:color-mix(in srgb,var(--mac-orange) 29%,transparent)}
-.site-highlight-stroke.site-green{background:color-mix(in srgb,var(--mac-green) 23%,transparent);
-  transform:rotate(.3deg)}
-/* The pitch is no longer one measure: the lede keeps a reading width on the left,
-   and the install field is wider than that measure and belongs at the other end of
-   the row, so the block itself spans the stage and its two children choose their
-   own edges. */
+/* ---- the hero's two halves ----
+   Words on the left, one frame of a session on the right. The frame is the
+   argument: a reader who goes no further has still seen a technique, the evidence
+   line under it and the four answers a member gives it. It used to be three
+   screens down, which meant the people most likely to leave were the only ones
+   who never saw what this is.
+
+   Grid, and not gated on script the way the stage below is. The stage becomes two
+   columns when .flow-live is set and reads as a stacked list until then, which is
+   the right bargain for a section in the middle of a page. It is the wrong one for
+   the first screen: this is what somebody with script blocked, or with a slow
+   first paint, is looking at.
+
+   The split favours the window. 96 columns of terminal is a fixed width in
+   characters and its type is sized from its own container, so every pixel the
+   prose takes is a smaller session beside it. Centred rather than top-aligned:
+   the two halves are different heights by nature and a frame hanging below a
+   short column reads as a thing that slipped. */
+.site-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);
+  gap:clamp(1.5rem,3vw,3rem);align-items:center;flex:1}
+.site-hero-col{min-width:0}
+/* Display size, one step down. The .site-title clamp is written for a headline
+   that owns the width of the stage; in half of it, it sets a line that breaks
+   after two words. */
+.site-hero-col .site-title{font-size:clamp(1.9rem,3.1vw,2.8rem);max-width:20ch}
+/* Air above the command. It follows a paragraph whose own bottom margin is
+   0.3rem, which put a whole window a few pixels under a line of prose and made
+   the two read as one block. The command is the page's one offer and it wants
+   the pause before it. */
+.site-hero-col .site-install{margin-top:1.9rem}
+/* One measure for both, and it is narrower than either carries on its own. The
+   lede's 34rem and the paragraphs' 46rem were set for a block that spanned the
+   stage; stacked in one column on a wide tablet they wrap at different places,
+   and a bold opening line that breaks a word before the plain one under it reads
+   as a mistake in the type rather than as two different measures. */
+.site-hero-col .site-lede,.site-hero-col .site-heading{max-width:40rem}
+/* The picture is 2560x2000 — nearly square, where the window it replaced was a
+   3:2 landscape. Width is height here: every rem this column takes comes back as
+   vertical space, and a hero taller than the screen has stopped being a hero. So
+   it sits inside the stage's padding rather than bleeding out to the edge, and
+   the column split above went back with it. */
+.site-hero-shot{min-width:0}
+/* The picture, unframed — the same rule the carousel's own screenshots follow and
+   for the same reason: these are captures of a surface that shares this
+   stylesheet, so the grey around the dashboard's panels IS this page's ground.
+   A border, a radius or a shadow would draw an outline with identical grey on
+   both sides of it.
+   aspect-ratio from the capture's own size, so the first screen reserves the
+   space and the headline does not jump when the image lands. */
+.site-hero-shot img{display:block;width:100%;height:auto;
+  aspect-ratio:2560 / 2000;
+  border:0;border-radius:0;box-shadow:none;background:transparent}
+/* The two halves stack early — at 1150px, not at the 700-ish a column of prose
+   would ask for — because the terminal is what sets the floor and it is measured
+   in characters. 96 of them at a readable size need about 680px, and a two-column
+   hero cannot give the window that until the page itself is near 1400 wide. Held
+   to a prose breakpoint instead, a 1024px laptop got a hero with seven-pixel type
+   in it and an install command clipped by its own box.
+   Stacked, the window has the whole column and is capped rather than stretched:
+   a 44rem frame reads at about 11px, and a full-width one on a large tablet would
+   be a terminal the size of a poster. They stack in reading order — claim, prose,
+   command, frame — and top-aligned, because with one column there is nothing left
+   to centre against. */
+@media (max-width:1150px){
+  .site-hero{grid-template-columns:1fr;gap:1.8rem;align-items:start}
+  /* Stacked, the picture has the whole column and wants it: this is the width at
+     which the suggestion inside it reads without zooming. The negative margin
+     goes — it exists to buy width from a padding the stacked layout is not
+     fighting. */
+  .site-hero-shot{max-width:46rem}
+}
+/* Everything under the headline: the claim, the two sentences, the command and
+   the line about the licence, in one column and in that order. It used to span
+   the whole stage with the prose at one end and the command at the other, which
+   is the arrangement the hero's two halves replaced. */
 .site-pitch{margin-top:clamp(1.4rem,3vh,2.2rem)}
 .site-lede{margin:0 0 0.7rem;max-width:34rem;color:var(--ink-2);
   font-size:clamp(17px,1.5vw,21px);font-weight:bold;line-height:1.6}
 .site-heading{margin:0 0 0.3rem;max-width:46rem;color:var(--ink-2);
   font-size:clamp(17px,1.5vw,21px);line-height:1.6}
-/* The install command: a terminal one line high, on the right, with the copy
-   control inside it. It replaced the hero's mailto button because a first screen
-   should offer the thing a reader can do without asking anybody — and it is a whole
-   window, title bar and lights included, so the eye reads it as the same machine
-   the session further down the page runs in rather than as a form field that
-   happens to be dark.
-   width:fit-content and the auto margin, not text-align: the box is as wide as the
-   command and its right edge lands on the stage's, which is where the masthead's
-   own right edge is.
+/* The install command: a terminal one line high, in the reading column, with the
+   copy control inside it. It replaced the hero's mailto button because a first
+   screen should offer the thing a reader can do without asking anybody — and it is
+   a whole window, title bar and lights included, so the eye reads it as the same
+   machine the frame beside it runs in rather than as a form field that happens to
+   be dark.
+   width:fit-content and no margin: the box is as wide as the command and starts at
+   the left edge of the sentence above it. It used to carry margin-left:auto, which
+   put it at the far end of a full-width stage — a reader finished the prose at one
+   corner and had to cross the screen to find the only thing to do.
    The font-size is the one the shared .site-term-bar does its em arithmetic in —
    the session window takes 13-ish px from its container query, and a bar sized off
    the page's larger body text would be visibly the taller of the two. */
-.site-install{width:fit-content;max-width:100%;margin-left:auto;font-size:13px;
+.site-install{width:fit-content;max-width:100%;font-size:13px;
   border-radius:14px;border:1px solid var(--ring);
   background:var(--term-ground);color:var(--term-ink);
   box-shadow:0 18px 44px -26px var(--lift)}
@@ -4472,9 +4545,12 @@ body.site::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:non
   transition:transform 140ms ease,box-shadow 140ms ease}
 .site-cta:hover{text-decoration:none;transform:translateY(-1px);
   box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 32%,transparent)}
-/* Right, with the field it belongs to: it is the sentence under the install
-   command, not under the lede. */
-.site-note{margin:1rem 0 0;color:var(--muted);font-size:12.5px;text-align:right}
+/* Under the install command, which is the field it belongs to. It used to be set
+   right because the window was: the window sat at the far end of the stage from
+   the prose, and the reader's eye had to cross the whole screen to reach the one
+   thing the page offered. Both are in the reading column now, under the sentence
+   that earns them, so both are set left. */
+.site-note{margin:1rem 0 0;color:var(--muted);font-size:12.5px;text-align:left}
 /* On a narrow window the row breaks in two: the wordmark, the repository and the
    theme keep the top line — brand, then the two controls that must stay reachable —
    and the links take a line of their own underneath, at the same left edge as
@@ -4498,8 +4574,20 @@ body.site::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:non
    The install command is longer than any phone is wide, so it stops being one line
    and wraps: a command that has to be scrolled sideways to be read is a command
    nobody reads, and the copy control is right there either way. */
+/* Below 700px the hero's picture goes, and this one costs nothing to lose: it is
+   the carousel's own screenshot, and the carousel shows it again a screen below
+   WITH the paragraph that explains it. Keeping both would spend a third of the
+   phone's first screen on an unreadable copy of something the reader is about to
+   meet properly. Folding a low-value column away rather than squeezing it is the
+   rule everywhere else on this page. */
 @media (max-width:700px){
+  .site-hero-shot{display:none}
   .site-title{max-width:none}
+  /* The hero's own measure has to go with it, and by name: it is set on
+     .site-hero-col .site-title and outranks the line above, so without this the
+     headline keeps a 20ch column on a 390px screen and stops a finger's width
+     short of the margin. */
+  .site-hero-col .site-title{max-width:none}
   .site-install{width:auto}
   .site-install-cmd{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 }

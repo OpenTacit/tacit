@@ -5,6 +5,7 @@ package ui
 
 import (
 	"html"
+	"strconv"
 	"strings"
 )
 
@@ -105,16 +106,45 @@ var termInk = map[byte]string{
 	'u': "term-you",
 }
 
+// What the member said and what the agent answered, lifted out for the same
+// reason the offer's content was: the hero draws this exchange too, and the
+// suggestion makes no sense without it. A technique that says "launch from the
+// matching template, not a hand-rolled config" is an answer to a question the
+// reader has to have seen asked — somebody copied last month's file whole and is
+// about to submit it.
+//
+// workAskLines keeps the terminal's own two lines rather than one sentence,
+// padding and all. A harness paints the band behind the WHOLE prompt, so both
+// lines carry it out to one right edge; re-wrapping a sentence here would mean
+// this file deciding where a terminal broke a line, which is the one thing these
+// frames are not allowed to invent. The hero joins them back into prose.
+const (
+	workCopied = "Copied runs/pretrain-70b-v2.yaml → runs/pretrain-70b-v3.yaml with your two changes"
+	workReady  = "Everything else carries over from v2 unchanged. The file is ready to submit."
+	offerAsk   = "Good. Submit it to the cluster."
+)
+
+var workAskLines = [2]string{
+	"Copy the config from last month's 70b-v2 run and set it up for v3. Use the same cluster, ",
+	"the data mix to the October blend and give it a longer warmup. Just work from the file.  ",
+}
+
+// workAsk is those two lines as the sentence they were before a terminal wrapped
+// them: the trailing pad goes, and the join is a single space.
+func workAsk() string {
+	return strings.TrimSpace(workAskLines[0]) + " " + strings.TrimSpace(workAskLines[1])
+}
+
 // labWork is moment one: a member has the agent copy last month's run config
 // and edit it for the next run — ordinary, correct-looking work, in which one
 // field quietly carries over that should not have. Nothing in the exchange
 // mentions Tacit.
-const labWork = `{d ❯} {u Copy the config from last month's 70b-v2 run and set it up for v3. Use the same cluster, }
-  {u the data mix to the October blend and give it a longer warmup. Just work from the file.  }
+var labWork = `{d ❯} {u ` + workAskLines[0] + `}
+  {u ` + workAskLines[1] + `}
 
   {d Read }{b 1}{d  file (ctrl+o to expand)}
 
-● Copied runs/pretrain-70b-v2.yaml → runs/pretrain-70b-v3.yaml with your two changes:
+● ` + workCopied + `:
 
   ┌──────────────────┬─────────────────────┬─────────────────────┐
   │      Field       │        70b-v2       │        70b-v3       │
@@ -128,30 +158,72 @@ const labWork = `{d ❯} {u Copy the config from last month's 70b-v2 run and set
   │ checkpoint.every │ 4000 steps          │ 4000 steps          │
   └──────────────────┴─────────────────────┴─────────────────────┘
 
-  Everything else carries over from v2 unchanged. The file is ready to submit.
+  ` + workReady + `
 
 {d ✳ Completed in 12s}`
+
+// The offer's content, lifted out of the frame because the page now draws this
+// one suggestion twice, in two shapes. The flow section draws the terminal's
+// rendering of it: a chip, three lines and a numbered list a keystroke apart.
+// The hero draws the other one — the native form a desktop client puts on
+// screen, which is what the harness actually asks for (internal/auditor/hooks,
+// formatForm) and the only channel that reaches every surface.
+//
+// They are two pictures of one moment, so they read from one text. The evidence
+// line is the reason that matters: it is MEASURED, it is what a registry loaded
+// with this demonstration org answers /v1/evidence with, and two copies of a
+// figure are two chances for one of them to quietly stop being true.
+//
+// offerName is the technique's own name and offerFit its applies_when line, both
+// that technique's text. offerEvidence is read, never adjusted — the note at the
+// head of this file says how to read it again.
+const (
+	offerName     = "Launch your training run from the matching Forgeflow template, not a hand-rolled config."
+	offerEvidence = "Measured by colleagues: helped 94% · adopted 54% · n=41 · team:pretraining"
+	offerFit      = "Starting a new training run of meaningful scale (multi-node, >100 GPU-hours)."
+)
+
+// offerAnswers are the four replies, in the order both renderings show them.
+// They are the harness's own labels (optApply, optShowHow, optNotRelevant,
+// optAlreadyUse in internal/auditor/hooks/delivery.go); a member's answer is
+// matched against those strings, so a label reworded on this page and nowhere
+// else would be a picture of a form that does not exist.
+var offerAnswers = [4]struct{ Label, Hint string }{
+	{"Apply it now", "apply this to the work in hand"},
+	{"Show me how", "explain the technique and its evidence first"},
+	{"Not relevant here", "it does not fit here"},
+	{"Already use it", "already known"},
+}
+
+// termOfferList is the terminal's rendering of those four: a numbered line and a
+// dim hint under it, with the prompt caret on the first. The indents are the
+// harness's and are why this is built rather than written — a hint that lost a
+// space would be invisible in a diff and crooked on the front page.
+func termOfferList() string {
+	var b strings.Builder
+	for i, a := range offerAnswers {
+		lead := "  "
+		if i == 0 {
+			lead = "{d \u276f} "
+		}
+		b.WriteString(lead + "{d " + strconv.Itoa(i+1) + ".} " + a.Label + "\n")
+		b.WriteString("     {d " + a.Hint + "}\n")
+	}
+	return b.String()
+}
 
 // labOffer is moment two: the member asks to submit the job, which is the
 // technique's own trigger, and Claude Code draws the suggestion as its native form —
 // the evidence line, and four answers a keystroke apart.
-const labOffer = `{d ❯} {u Good. Submit it to the cluster.}
+var labOffer = `{d ❯} {u ` + offerAsk + `}
 {d ──────────────────────────────────────────────────────────────────────────────────────────────}
 {c  ◆ «PRODUCT» }
 
-{b Launch your training run from the matching Forgeflow template, not a hand-rolled config.}
-{b Measured by colleagues: helped 94% · adopted 54% · n=41 · team:pretraining}
-{b Starting a new training run of meaningful scale (multi-node, >100 GPU-hours).}
+{b ` + offerName + `}
+{b ` + offerEvidence + `}
+{b ` + offerFit + `}
 
-{d ❯} {d 1.} Apply it now
-     {d apply this to the work in hand}
-  {d 2.} Show me how
-     {d explain the technique and its evidence first}
-  {d 3.} Not relevant here
-     {d it does not fit here}
-  {d 4.} Already use it
-     {d already known}
-  {d 5. Type something.}
+` + termOfferList() + `  {d 5. Type something.}
 {d ──────────────────────────────────────────────────────────────────────────────────────────────}
   {d 6.} Chat about this
 
@@ -161,10 +233,10 @@ const labOffer = `{d ❯} {u Good. Submit it to the cluster.}
 // launches from the validated template instead, and the field frame one carried
 // over is replaced in front of the member. The adoption is recorded by the
 // answering — nobody filled in a survey.
-const labAdopt = `● User selected an answer:
-  {d ⎿  · Launch your training run from the matching Forgeflow templates, not a hand-rolled config.}
-     {d Measured by colleagues: helped 94% · adopted 54% · n=41 · team:pretraining}
-     {d Starting a new training run of meaningful scale (multi-node, >100 GPU-hours).}
+var labAdopt = `● User selected an answer:
+  {d ⎿  · ` + offerName + `}
+     {d ` + offerEvidence + `}
+     {d ` + offerFit + `}
      {d → Apply it now}
 
   {d Called plugin:tacit:tacit (ctrl+o to expand)}

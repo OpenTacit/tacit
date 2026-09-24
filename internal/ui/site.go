@@ -106,8 +106,7 @@ func SiteHTMLFor(host, operator string) string {
 		"«CSSVER»", CSSHash(),
 		"«MARK»", MarkSVG,
 		"«HEADLINE»", html.EscapeString(SiteHeadline),
-		"«HEADLINEWHAT»", html.EscapeString(siteHeadlineWhat),
-		"«HEADLINEHOW»", html.EscapeString(siteHeadlineHow),
+		"«HEROFRAME»", siteHeroFrameHTML(),
 		"«ACTIONLABEL»", SiteActionLabel,
 		"«CONTACTHREF»", SiteContactHrefFor(host),
 		"«NAV»", siteNavHTML(),
@@ -151,6 +150,32 @@ func siteProduct(rendered string) string {
 // «PRODUCT» has become <i>«</i>PRODUCT<i>»</i> and no substitution will find it.
 func siteProductText(authored string) string {
 	return strings.ReplaceAll(authored, "«PRODUCT»", product.Name())
+}
+
+// siteHeroFrameHTML is the hero's picture: the dashboard's Outcomes view, which
+// is what this product looks like once it has been running.
+//
+// It is the carousel's own file, read by key (siteHeroShot), so the first screen
+// and the "Measure technique outcomes" slide below cannot drift into showing
+// different pictures — and its description is that slide's too, because it is
+// the same picture and a reader who cannot see it should meet the same sentence.
+//
+// No frame. These captures are of a surface that shares this stylesheet, so the
+// grey around the dashboard's panels IS this page's ground; a border, a radius or
+// a shadow here would draw an outline with identical grey either side of it. The
+// carousel learned that the hard way and its own rule says so.
+//
+// Eager, and the only image on this page that is. Everything in the carousel is
+// lazy; this one is the first screen, and a lazy hero arrives after the reader
+// has read past it.
+func siteHeroFrameHTML() string {
+	shot, dark, alt, w, h := siteHeroShot()
+	img := func(theme, name string) string {
+		return `<img class="theme-` + theme + `" src="` + SiteShotURL(name) +
+			`" alt="` + html.EscapeString(alt) + `" width="` + strconv.Itoa(w) +
+			`" height="` + strconv.Itoa(h) + `">`
+	}
+	return `<div class="site-hero-shot">` + img("light", shot) + img("dark", dark) + `</div>`
 }
 
 // siteTermBar is the window's chrome: three lights, and the scenario picker
@@ -311,26 +336,29 @@ var siteTemplate = `<!doctype html><html lang="en"><head><meta charset="utf-8">
   <a class="site-gh" href="«REPOHREF»" aria-label="«PRODUCT» on GitHub" title="«PRODUCT» on GitHub">«GITHUBMARK»</a>
   <button id="theme-toggle" class="theme-toggle site-theme" type="button" aria-label="Color theme" title="Color theme">` + AutoSVG + `</button>
  </div>
- <h1 class="site-title" data-highlight-orange="«HEADLINEWHAT»" data-highlight-green="«HEADLINEHOW»">«HEADLINE»</h1>
- <div class="site-pitch">
-  <p class="site-lede">«PRODUCT» helps you use AI better.</p>
-  <p class="site-heading">By observing and measuring what works best, it records
-   and maintains techniques for you, then offers them to you or colleagues when
-   needed.</p>
-  <p class="site-heading">Use it by yourself for deep insights to how you
-   use AI, or across teams to share knowledge and the best techniques. You don't
-   need to change your tools or how you use them, «PRODUCT» operates
-   automatically and privately.</p>
-  <div class="site-install" data-guide-surface>
-   <div class="site-term-bar"><i aria-hidden="true"></i><i aria-hidden="true"></i>
-    <button type="button" class="site-zoom" data-guide-open aria-label="«GUIDETITLE»">` + zoomGlyphSVG + `</button>
-    <span class="site-install-title" aria-hidden="true">«INSTALLTITLE»</span></div>
-   <div class="site-install-row">
-    <code class="site-install-cmd">«INSTALLCMD»</code>
-    <span class="site-install-info" aria-hidden="true">` + InfoIcon + `</span>
+ <div class="site-hero">
+  <div class="site-hero-col">
+   <h1 class="site-title">«HEADLINE»</h1>
+   <div class="site-pitch">
+    <p class="site-lede">«PRODUCT» measures which techniques help, then passes them on.</p>
+    <p class="site-heading">It learns from what your teams already do with AI, keeps
+     the techniques that work, and offers them to colleagues at the moment they
+	 are needed.</p>
+    <p class="site-heading">«PRODUCT» works inside your current tools, and keeps
+     privacy first.</p>
+    <div class="site-install" data-guide-surface>
+     <div class="site-term-bar"><i aria-hidden="true"></i><i aria-hidden="true"></i>
+      <button type="button" class="site-zoom" data-guide-open aria-label="«GUIDETITLE»">` + zoomGlyphSVG + `</button>
+      <span class="site-install-title" aria-hidden="true">«INSTALLTITLE»</span></div>
+     <div class="site-install-row">
+      <code class="site-install-cmd">«INSTALLCMD»</code>
+      <span class="site-install-info" aria-hidden="true">` + InfoIcon + `</span>
+     </div>
+    </div>
+    <p class="site-note">«PRODUCT» is open source and self-hosted.</p>
    </div>
   </div>
-  <p class="site-note">«PRODUCT» is open source and self-hosted.</p>
+  «HEROFRAME»
  </div>
 </header>
 
@@ -374,7 +402,7 @@ var siteTemplate = `<!doctype html><html lang="en"><head><meta charset="utf-8">
   <div class="site-guide-body">«GUIDE»</div>
  </div>
 </dialog>
-	` + ThemeToggleScript + StylesheetGuardScript + siteHighlightScript +
+	` + ThemeToggleScript + StylesheetGuardScript +
 	`<script>` + CopyButtonJS + `</script>` + siteScript + `
 </body></html>`
 
