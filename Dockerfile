@@ -16,7 +16,7 @@
 # Pinned by digest, not tag: a tag is a moving target, and an image that
 # changes underneath a release is not reproducible. Update deliberately —
 # `docker buildx imagetools inspect debian:12-slim` prints the current one.
-FROM --platform=$BUILDPLATFORM debian:12-slim@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171 AS fetch
+FROM --platform=$BUILDPLATFORM debian:13-slim@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a AS fetch
 ARG BUILDARCH
 ARG TARGETARCH
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
